@@ -7,9 +7,12 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "STPScrollView.h"
 
 @interface ViewController : UIViewController
 
+@property (nonatomic) STPScrollView *scrollView;
+@property (nonatomic) UIScrollView *sllView;
 
 @end
 

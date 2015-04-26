@@ -14,6 +14,9 @@
 		8C6240D41AB90355004C51BB /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8C6240D31AB90355004C51BB /* Images.xcassets */; };
 		8C6240D71AB90355004C51BB /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 8C6240D51AB90355004C51BB /* LaunchScreen.xib */; };
 		8C6240E31AB90355004C51BB /* STPScrollViewTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 8C6240E21AB90355004C51BB /* STPScrollViewTests.m */; };
+		8C9618AB1AEC9FA900BD425F /* STPScrollView.m in Sources */ = {isa = PBXBuildFile; fileRef = 8C9618AA1AEC9FA900BD425F /* STPScrollView.m */; };
+		8C9618AE1AECA01200BD425F /* STPScrollViewPanGestureRecognizer.m in Sources */ = {isa = PBXBuildFile; fileRef = 8C9618AD1AECA01200BD425F /* STPScrollViewPanGestureRecognizer.m */; };
+		C81A582E3D1ED3F10658EFD5 /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F74ABFB6705069E3A2641567 /* libPods.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -27,6 +30,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		36FA70DA0FA700AD14B82B98 /* Pods.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.release.xcconfig; path = "Pods/Target Support Files/Pods/Pods.release.xcconfig"; sourceTree = "<group>"; };
+		7FEBA2F47B91FC54DD8BDA15 /* Pods.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.debug.xcconfig; path = "Pods/Target Support Files/Pods/Pods.debug.xcconfig"; sourceTree = "<group>"; };
 		8C6240C31AB90355004C51BB /* STPScrollView.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = STPScrollView.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8C6240C71AB90355004C51BB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8C6240C81AB90355004C51BB /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -40,6 +45,11 @@
 		8C6240DC1AB90355004C51BB /* STPScrollViewTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = STPScrollViewTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		8C6240E11AB90355004C51BB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8C6240E21AB90355004C51BB /* STPScrollViewTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = STPScrollViewTests.m; sourceTree = "<group>"; };
+		8C9618A91AEC9FA900BD425F /* STPScrollView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = STPScrollView.h; sourceTree = "<group>"; };
+		8C9618AA1AEC9FA900BD425F /* STPScrollView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = STPScrollView.m; sourceTree = "<group>"; };
+		8C9618AC1AECA01200BD425F /* STPScrollViewPanGestureRecognizer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = STPScrollViewPanGestureRecognizer.h; sourceTree = "<group>"; };
+		8C9618AD1AECA01200BD425F /* STPScrollViewPanGestureRecognizer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = STPScrollViewPanGestureRecognizer.m; sourceTree = "<group>"; };
+		F74ABFB6705069E3A2641567 /* libPods.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPods.a; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -47,6 +57,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C81A582E3D1ED3F10658EFD5 /* libPods.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -60,12 +71,31 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		3F9DE59FBF99CDF8EB2E7E1B /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				F74ABFB6705069E3A2641567 /* libPods.a */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		507130F29EDBBF315B0193C9 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				7FEBA2F47B91FC54DD8BDA15 /* Pods.debug.xcconfig */,
+				36FA70DA0FA700AD14B82B98 /* Pods.release.xcconfig */,
+			);
+			name = Pods;
+			sourceTree = "<group>";
+		};
 		8C6240BA1AB90355004C51BB = {
 			isa = PBXGroup;
 			children = (
 				8C6240C51AB90355004C51BB /* STPScrollView */,
 				8C6240DF1AB90355004C51BB /* STPScrollViewTests */,
 				8C6240C41AB90355004C51BB /* Products */,
+				507130F29EDBBF315B0193C9 /* Pods */,
+				3F9DE59FBF99CDF8EB2E7E1B /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -85,6 +115,10 @@
 				8C6240CB1AB90355004C51BB /* AppDelegate.m */,
 				8C6240CD1AB90355004C51BB /* ViewController.h */,
 				8C6240CE1AB90355004C51BB /* ViewController.m */,
+				8C9618A91AEC9FA900BD425F /* STPScrollView.h */,
+				8C9618AA1AEC9FA900BD425F /* STPScrollView.m */,
+				8C9618AC1AECA01200BD425F /* STPScrollViewPanGestureRecognizer.h */,
+				8C9618AD1AECA01200BD425F /* STPScrollViewPanGestureRecognizer.m */,
 				8C6240D01AB90355004C51BB /* Main.storyboard */,
 				8C6240D31AB90355004C51BB /* Images.xcassets */,
 				8C6240D51AB90355004C51BB /* LaunchScreen.xib */,
@@ -126,9 +160,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 8C6240E61AB90355004C51BB /* Build configuration list for PBXNativeTarget "STPScrollView" */;
 			buildPhases = (
+				795949D46AE5AE7C82D53967 /* Check Pods Manifest.lock */,
 				8C6240BF1AB90355004C51BB /* Sources */,
 				8C6240C01AB90355004C51BB /* Frameworks */,
 				8C6240C11AB90355004C51BB /* Resources */,
+				6F1968B57CECEBE14C917EF7 /* Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -214,14 +250,49 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		6F1968B57CECEBE14C917EF7 /* Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods/Pods-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		795949D46AE5AE7C82D53967 /* Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Check Pods Manifest.lock";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [[ $? != 0 ]] ; then\n    cat << EOM\nerror: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\nEOM\n    exit 1\nfi\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		8C6240BF1AB90355004C51BB /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8C9618AE1AECA01200BD425F /* STPScrollViewPanGestureRecognizer.m in Sources */,
 				8C6240CF1AB90355004C51BB /* ViewController.m in Sources */,
 				8C6240CC1AB90355004C51BB /* AppDelegate.m in Sources */,
 				8C6240C91AB90355004C51BB /* main.m in Sources */,
+				8C9618AB1AEC9FA900BD425F /* STPScrollView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -341,6 +412,7 @@
 		};
 		8C6240E71AB90355004C51BB /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 7FEBA2F47B91FC54DD8BDA15 /* Pods.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				INFOPLIST_FILE = STPScrollView/Info.plist;
@@ -351,6 +423,7 @@
 		};
 		8C6240E81AB90355004C51BB /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 36FA70DA0FA700AD14B82B98 /* Pods.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				INFOPLIST_FILE = STPScrollView/Info.plist;
@@ -412,6 +485,7 @@
 				8C6240E81AB90355004C51BB /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		8C6240E91AB90355004C51BB /* Build configuration list for PBXNativeTarget "STPScrollViewTests" */ = {
 			isa = XCConfigurationList;
@@ -420,6 +494,7 @@
 				8C6240EB1AB90355004C51BB /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
