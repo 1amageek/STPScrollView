@@ -1,6 +1,6 @@
 ## STPScrollView
-STPScrollView is UIScrollView like scroll view.
-UIScrollView can not change build-in gesture recognizers.
+STPScrollView is Scroll View resembling a UIScrollView. This View allows customization that can not be in UIScrollView. 
+For example, the UIPanGestureRecognizer that has been built-in UIScrollView you will not be able to change.
 
 ```objective-c
 // Use these accessors to configure the scroll view's built-in gesture recognizers.
