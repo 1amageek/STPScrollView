@@ -12,6 +12,12 @@ For example, the UIPanGestureRecognizer that has been built-in UIScrollView you 
 
 
 ## Quick Start
+
+This project is dependent on the Facebook of POP.
+```bash
+pod install 
+```
+
 ```objective-c
 - (void)viewDidLoad {
     [super viewDidLoad];
