@@ -17,7 +17,7 @@ This project is dependent on the Facebook of POP.
 ```bash
 pod install 
 ```
-
+This is the same usage as the UIScrollView
 ```objective-c
 - (void)viewDidLoad {
     [super viewDidLoad];
