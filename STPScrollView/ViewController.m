@@ -31,7 +31,7 @@
     _scrollView.maximumZoomScale = 1;
     _scrollView.contentSize = CGSizeMake(500, 500);
     
-    _contentView = [[UIView alloc] initWithFrame:(CGRect){CGPointZero, CGSizeMake(1000, [UIScreen mainScreen].bounds.size.height)}];
+    _contentView = [[UIView alloc] initWithFrame:[UIScreen mainScreen].bounds];
     _contentView.backgroundColor = [UIColor greenColor];
     
     self.tapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapped:)];
@@ -43,9 +43,9 @@
     [self.scrollView addSubview:_contentView];
     
     for (NSInteger i = 0; i < 15; i++) {
-        UIView *aView = [[UIView alloc] initWithFrame:CGRectMake(80 * i, 30 * i, 100, 100)];
+        UIView *aView = [[UIView alloc] initWithFrame:CGRectMake(30 * i, 30 * i , 30 , 30)];
         aView.backgroundColor = [UIColor redColor];
-        [self.scrollView addSubview:aView];
+        [_contentView addSubview:aView];
     }
     
 }

@@ -13,6 +13,7 @@
 {
     CGPoint _initialTouchPoint;
     CGFloat _initialZoomScale;
+    CGAffineTransform _initialTransform;
     BOOL _animating;
 }
 
@@ -65,47 +66,19 @@
     _panGestureRecognizer.delegate = self;
     [self addGestureRecognizer:_panGestureRecognizer];
     
+    _pinchGestureRecognizer = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(pinchGesture:)];
+    _pinchGestureRecognizer.delegate = self;
+    [self addGestureRecognizer:_pinchGestureRecognizer];
+    
     
 }
 
-- (UIView *)zoomView
+- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    if ([self.delegate viewForZoomingInScrollView:self]) {
-        return [self.delegate viewForZoomingInScrollView:self];
-    }
-    return nil;
-}
-
-- (void)setZoomScale:(CGFloat)zoomScale
-{
-    [self setZoomScale:zoomScale animated:NO];
-}
-
-- (void)setZoomScale:(CGFloat)scale animated:(BOOL)animated
-{
-    _zoomScale = scale;
-    
-    if (scale < self.minimumZoomScale) {
-        scale = self.minimumZoomScale;
-    }
-    
-    if (self.maximumZoomScale < scale) {
-        scale = self.maximumZoomScale;
-    }
-    
-    if (animated) {
-        
-        _animating = YES;
-        POPBasicAnimation *anim = [POPBasicAnimation animationWithPropertyNamed:kPOPLayerScaleXY];
-        anim.toValue = [NSValue valueWithCGPoint:CGPointMake(scale, scale)];
-        anim.delegate = self;
-        [self.zoomView.layer pop_addAnimation:anim forKey:@"stp.scrollView.animation.zoom"];
-        
-        
-    } else {
-        self.zoomView.transform = CGAffineTransformMakeScale(scale, scale);
-    }
-    
+    [self pop_removeAnimationForKey:@"stp.scrollView.animation.decay.x"];
+    [self pop_removeAnimationForKey:@"stp.scrollView.animation.decay.y"];
+    [self pop_removeAnimationForKey:@"stp.scrollView.animation.bounce.x"];
+    [self pop_removeAnimationForKey:@"stp.scrollView.animation.bounce.y"];
 }
 
 - (void)panGesture:(STPScrollViewPanGestureRecognizer *)recognizer
@@ -341,12 +314,111 @@
 
 }
 
-- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
+#pragma mark - Pinch Gesture
+
+- (void)pinchGesture:(UIPinchGestureRecognizer *)recognizer
 {
-    [self pop_removeAnimationForKey:@"stp.scrollView.animation.decay.x"];
-    [self pop_removeAnimationForKey:@"stp.scrollView.animation.decay.y"];
-    [self pop_removeAnimationForKey:@"stp.scrollView.animation.bounce.x"];
-    [self pop_removeAnimationForKey:@"stp.scrollView.animation.bounce.y"];
+    CGPoint location = [recognizer locationInView:self];
+    
+    switch (recognizer.state) {
+        case UIGestureRecognizerStateBegan:
+        {
+            _initialTouchPoint = location;
+            _initialTransform = self.zoomView.layer.affineTransform;
+            NSLog(@"zoom Scale %f", recognizer.scale);
+            //[recognizer setScale:self.zoomScale];
+        }
+            break;
+        case UIGestureRecognizerStateChanged:
+        {
+            /*
+            CGFloat scale = recognizer.scale;
+            self.zoomView.layer.affineTransform = CGAffineTransformConcat(_initialTransform, CGAffineTransformMakeScale(scale, scale));
+            CGFloat zoomScale = self.zoomView.frame.size.height / self.zoomView.bounds.size.height;
+             */
+            
+            //CGFloat zoomScale = recognizer.scale * self.zoomScale;
+            
+            
+            [recognizer setScale:self.zoomScale];
+            [self setZoomScale:recognizer.scale];
+            
+
+        }
+            break;
+        case UIGestureRecognizerStateEnded:
+        {
+            
+        }
+            break;
+            
+        default:
+            break;
+    }
+}
+
+
+- (UIView *)zoomView
+{
+    if ([self.delegate viewForZoomingInScrollView:self]) {
+        return [self.delegate viewForZoomingInScrollView:self];
+    }
+    return nil;
+}
+
+- (void)setZoomScale:(CGFloat)zoomScale
+{
+    if (zoomScale == _zoomScale) {
+        return;
+    }
+    _zoomScale = zoomScale;
+    
+    if (zoomScale < self.minimumZoomScale) {
+        zoomScale = self.minimumZoomScale;
+    }
+    
+    if (self.maximumZoomScale < zoomScale) {
+        zoomScale = self.maximumZoomScale;
+    }
+    NSLog(@"zoom %f", zoomScale);
+    self.zoomView.layer.affineTransform = CGAffineTransformMakeScale(zoomScale, zoomScale);
+}
+
+- (void)setZoomScale:(CGFloat)scale animated:(BOOL)animated
+{
+    _zoomScale = scale;
+    
+    if (animated) {
+        
+        _animating = YES;
+        /*
+        POPBasicAnimation *anim = [POPBasicAnimation animationWithPropertyNamed:kPOPLayerScaleXY];
+        anim.toValue = [NSValue valueWithCGPoint:CGPointMake(scale, scale)];
+        anim.delegate = self;
+        [self.zoomView.layer pop_addAnimation:anim forKey:@"stp.scrollView.animation.zoom"];
+        */
+        
+        POPBasicAnimation *zoomAnimation = [POPBasicAnimation animation];
+        POPAnimatableProperty *prop = [POPAnimatableProperty propertyWithName:@"stp.scrollView.animation.zoom.property" initializer:^(POPMutableAnimatableProperty *prop) {
+            prop.readBlock = ^(id obj, CGFloat values[]) {
+                values[0] = [obj zoomScale];
+            };
+            prop.writeBlock = ^(id obj, const CGFloat values[]) {
+                [obj setZoomScale:values[0]];
+            };
+            // dynamics threshold
+            prop.threshold = 0.01;
+        }];
+        zoomAnimation.property = prop;
+        zoomAnimation.toValue = @(scale);
+        
+        [self pop_addAnimation:zoomAnimation forKey:@"stp.scrollView.animation.zoom"];
+
+        
+    } else {
+        [self setZoomScale:scale];
+    }
+    
 }
 
 #pragma mark - <UIGestureRecognizerDelegate>
