@@ -29,6 +29,7 @@
     _scrollView.delegate = self;
     _scrollView.minimumZoomScale = 0.4;
     _scrollView.maximumZoomScale = 1;
+    _scrollView.bouncesZoom = YES;
     _scrollView.contentSize = CGSizeMake(500, 500);
     
     _contentView = [[UIView alloc] initWithFrame:[UIScreen mainScreen].bounds];

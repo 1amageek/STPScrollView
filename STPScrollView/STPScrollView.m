@@ -9,6 +9,9 @@
 #import "STPScrollView.h"
 #import <POP.h>
 
+#define RESISTANCE_INTERACTIVE 3
+
+
 @interface STPScrollView () <UIGestureRecognizerDelegate, POPAnimationDelegate>
 {
     CGPoint _initialTouchPoint;
@@ -112,11 +115,11 @@
             
             // contentSizeを超えたときの抵抗
             if (self.contentOffset.x < availableOffsetX || 0 < self.contentOffset.x) {
-                translationX = translationX / 3;
+                translationX = translationX / RESISTANCE_INTERACTIVE;
             }
             
             if (self.contentOffset.y < availableOffsetY || 0 < self.contentOffset.y) {
-                translationY = translationY / 3;
+                translationY = translationY / RESISTANCE_INTERACTIVE;
             }
             
             self.contentOffset = CGPointMake(self.contentOffset.x + translationX, self.contentOffset.y + translationY);
@@ -323,31 +326,36 @@
     switch (recognizer.state) {
         case UIGestureRecognizerStateBegan:
         {
+            [self pop_removeAnimationForKey:@"stp.scrollView.animation.zoom"];
+            
             _initialTouchPoint = location;
             _initialTransform = self.zoomView.layer.affineTransform;
-            NSLog(@"zoom Scale %f", recognizer.scale);
-            //[recognizer setScale:self.zoomScale];
+            
+            [recognizer setScale:self.zoomScale];
         }
             break;
         case UIGestureRecognizerStateChanged:
         {
-            /*
-            CGFloat scale = recognizer.scale;
-            self.zoomView.layer.affineTransform = CGAffineTransformConcat(_initialTransform, CGAffineTransformMakeScale(scale, scale));
-            CGFloat zoomScale = self.zoomView.frame.size.height / self.zoomView.bounds.size.height;
-             */
             
-            //CGFloat zoomScale = recognizer.scale * self.zoomScale;
+            CGFloat targetScale = recognizer.scale;
             
+            if (targetScale < self.minimumZoomScale) {
+                targetScale = self.minimumZoomScale - (self.minimumZoomScale - targetScale) / RESISTANCE_INTERACTIVE;
+            }
+
+            if (self.maximumZoomScale < targetScale) {
+                targetScale = self.maximumZoomScale + (targetScale - self.maximumZoomScale) / RESISTANCE_INTERACTIVE;
+            }
+
             
-            [recognizer setScale:self.zoomScale];
-            [self setZoomScale:recognizer.scale];
-            
+            [self setZoomScale:targetScale];
 
         }
             break;
         case UIGestureRecognizerStateEnded:
         {
+            
+            [self setZoomScale:recognizer.scale animated:self.bouncesZoom];
             
         }
             break;
@@ -371,32 +379,48 @@
     if (zoomScale == _zoomScale) {
         return;
     }
-    _zoomScale = zoomScale;
     
-    if (zoomScale < self.minimumZoomScale) {
-        zoomScale = self.minimumZoomScale;
+    if (self.bouncesZoom) {
+        
+        if (self.maximumZoomScale < zoomScale) {
+            //zoomScale = self.maximumZoomScale + (zoomScale - self.maximumZoomScale) / RESISTANCE_INTERACTIVE;
+        }
+        
+        _zoomScale = zoomScale;
+        self.zoomView.layer.affineTransform = CGAffineTransformMakeScale(zoomScale, zoomScale);
+        
+    } else {
+        
+        if (zoomScale < self.minimumZoomScale) {
+            zoomScale = self.minimumZoomScale;
+        }
+        
+        if (self.maximumZoomScale < zoomScale) {
+            zoomScale = self.maximumZoomScale;
+        }
+        
+        _zoomScale = zoomScale;
+        self.zoomView.layer.affineTransform = CGAffineTransformMakeScale(zoomScale, zoomScale);
+        
     }
     
-    if (self.maximumZoomScale < zoomScale) {
-        zoomScale = self.maximumZoomScale;
-    }
-    NSLog(@"zoom %f", zoomScale);
-    self.zoomView.layer.affineTransform = CGAffineTransformMakeScale(zoomScale, zoomScale);
+    
 }
 
 - (void)setZoomScale:(CGFloat)scale animated:(BOOL)animated
 {
-    _zoomScale = scale;
-    
+
     if (animated) {
-        
+    
         _animating = YES;
-        /*
-        POPBasicAnimation *anim = [POPBasicAnimation animationWithPropertyNamed:kPOPLayerScaleXY];
-        anim.toValue = [NSValue valueWithCGPoint:CGPointMake(scale, scale)];
-        anim.delegate = self;
-        [self.zoomView.layer pop_addAnimation:anim forKey:@"stp.scrollView.animation.zoom"];
-        */
+        
+        if (scale < self.minimumZoomScale) {
+            scale = self.minimumZoomScale;
+        }
+        
+        if (self.maximumZoomScale < scale) {
+            scale = self.maximumZoomScale;
+        }
         
         POPBasicAnimation *zoomAnimation = [POPBasicAnimation animation];
         POPAnimatableProperty *prop = [POPAnimatableProperty propertyWithName:@"stp.scrollView.animation.zoom.property" initializer:^(POPMutableAnimatableProperty *prop) {
