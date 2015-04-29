@@ -13,7 +13,7 @@ For example, the UIPanGestureRecognizer that has been built-in UIScrollView you 
 
 ## Quick Start
 
-This project is dependent on the Facebook of POP.
+This project is dependent on the Facebook of [POP](https://github.com/facebook/pop).
 ```bash
 pod install 
 ```
