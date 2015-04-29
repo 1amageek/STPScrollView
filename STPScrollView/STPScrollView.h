@@ -40,7 +40,6 @@
 @property (nonatomic) STPScrollViewPanGestureRecognizer *panGestureRecognizer;
 @property (nonatomic) UIPinchGestureRecognizer *pinchGestureRecognizer;
 
-
 @end
 
 

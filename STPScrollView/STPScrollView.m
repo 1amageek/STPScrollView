@@ -82,6 +82,7 @@
     [self pop_removeAnimationForKey:@"stp.scrollView.animation.decay.y"];
     [self pop_removeAnimationForKey:@"stp.scrollView.animation.bounce.x"];
     [self pop_removeAnimationForKey:@"stp.scrollView.animation.bounce.y"];
+    [self pop_removeAnimationForKey:@"stp.scrollView.animation.offset"];
 }
 
 - (void)panGesture:(STPScrollViewPanGestureRecognizer *)recognizer
@@ -382,10 +383,6 @@
     
     if (self.bouncesZoom) {
         
-        if (self.maximumZoomScale < zoomScale) {
-            //zoomScale = self.maximumZoomScale + (zoomScale - self.maximumZoomScale) / RESISTANCE_INTERACTIVE;
-        }
-        
         _zoomScale = zoomScale;
         self.zoomView.layer.affineTransform = CGAffineTransformMakeScale(zoomScale, zoomScale);
         
@@ -404,14 +401,13 @@
         
     }
     
-    
+    self.contentSize = self.zoomView.frame.size;
 }
 
 - (void)setZoomScale:(CGFloat)scale animated:(BOOL)animated
 {
-
     if (animated) {
-    
+        
         _animating = YES;
         
         if (scale < self.minimumZoomScale) {
@@ -445,6 +441,78 @@
     
 }
 
+- (void)zoomToRect:(CGRect)rect animated:(BOOL)animated
+{
+    
+    
+    CGFloat scaleX = self.bounds.size.width / rect.size.width;
+    CGFloat scaleY = self.bounds.size.height / rect.size.height;
+    CGFloat scale = MAX(scaleX, scaleY);
+    CGPoint targetOffset = CGPointMake(-rect.origin.x, -rect.origin.y);
+    
+    //[self _convertAnchorPoint:CGPointMake(0, 0)];
+    
+    if (animated) {
+        
+        POPBasicAnimation *zoomAnimation = [POPBasicAnimation animation];
+        POPAnimatableProperty *prop = [POPAnimatableProperty propertyWithName:@"stp.scrollView.animation.zoom.property" initializer:^(POPMutableAnimatableProperty *prop) {
+            prop.readBlock = ^(id obj, CGFloat values[]) {
+                values[0] = [obj zoomScale];
+            };
+            prop.writeBlock = ^(id obj, const CGFloat values[]) {
+                [obj setZoomScale:values[0]];
+            };
+            prop.threshold = 0.01;
+        }];
+        zoomAnimation.property = prop;
+        zoomAnimation.toValue = @(scale);
+        
+        [self pop_addAnimation:zoomAnimation forKey:@"stp.scrollView.animation.zoom"];
+        
+        
+        POPBasicAnimation *offsetAnimation = [POPBasicAnimation animation];
+        offsetAnimation.property = [POPAnimatableProperty propertyWithName:@"stp.scrollView.animation.offset.property" initializer:^(POPMutableAnimatableProperty *prop) {
+            prop.readBlock = ^(id obj, CGFloat values[]) {
+                values[0] = [obj contentOffset].x;
+                values[1] = [obj contentOffset].y;
+            };
+            prop.writeBlock = ^(id obj, const CGFloat values[]) {
+                CGPoint contentOffset = [obj contentOffset];
+                contentOffset.x = values[0];
+                contentOffset.y = values[1];
+                
+                [obj setContentOffset:contentOffset];
+                
+            };
+            prop.threshold = 0.01;
+        }];
+        offsetAnimation.toValue = [NSValue valueWithCGPoint:targetOffset];
+        
+        [self pop_addAnimation:zoomAnimation forKey:@"stp.scrollView.animation.offset"];
+        
+        
+    } else {
+        [self setZoomScale:scale];
+        [self setContentOffset:targetOffset];
+    }
+    
+}
+
+- (void)_convertAnchorPoint:(CGPoint)anchorPoint
+{
+    CGPoint _anchorPoint = self.zoomView.layer.anchorPoint;
+    CGFloat toPointX = self.zoomView.frame.size.width * (_anchorPoint.x - anchorPoint.x);
+    CGFloat toPointY = self.zoomView.frame.size.height * (_anchorPoint.y - anchorPoint.y);
+    
+    self.zoomView.layer.anchorPoint = anchorPoint;
+    
+    CGPoint position = self.zoomView.layer.position;
+    position.x = position.x - toPointX;
+    position.y = position.y - toPointY;
+    self.zoomView.layer.position = position;
+}
+
+
 #pragma mark - <UIGestureRecognizerDelegate>
 
  - (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer
@@ -469,14 +537,6 @@
     
     
     
-}
-
-
-
-#pragma mark - POP
-
-static inline CGFloat POPTransition(CGFloat progress, CGFloat startValue, CGFloat endValue) {
-    return startValue + (progress * (endValue - startValue));
 }
 
 @end
