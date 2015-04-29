@@ -8,7 +8,7 @@
 
 #import "ViewController.h"
 
-@interface ViewController () <UIScrollViewDelegate, UIScrollViewDelegate, UICollectionViewDataSource, UICollectionViewDelegate>
+@interface ViewController () <STPScrollViewDelegate, UIScrollViewDelegate, UICollectionViewDataSource, UICollectionViewDelegate>
 
 @property (nonatomic) UICollectionView *contentView;
 @property (nonatomic) UITapGestureRecognizer *tapGestureRecognizer;
@@ -30,7 +30,7 @@
     _scrollView.minimumZoomScale = 0.4;
     _scrollView.maximumZoomScale = 40;
     _scrollView.bouncesZoom = YES;
-    _scrollView.contentSize = CGSizeMake(500, 500);
+    _scrollView.contentSize = CGSizeMake(500, 800);
     
     UICollectionViewFlowLayout *layout = [UICollectionViewFlowLayout new];
     
@@ -55,10 +55,7 @@
 - (void)tapped:(UITapGestureRecognizer *)recognizer
 {
     //[self.scrollView setZoomScale:0.5 animated:YES];
-    CGRect rect = [self zoomRectForScrollView:self.scrollView withScale:4 withCenter:[recognizer locationInView:self.contentView]];
-    rect.size.width = 200;
-    NSLog(@"rect %@", NSStringFromCGRect(rect));
-    
+    CGRect rect = [self zoomRectForScrollView:self.scrollView withScale:1.1 withCenter:[recognizer locationInView:self.contentView]];
     [self.scrollView zoomToRect:rect animated:YES];
     
 }

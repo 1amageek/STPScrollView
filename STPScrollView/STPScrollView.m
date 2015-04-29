@@ -210,25 +210,21 @@
     
     CGFloat availableOffsetX = self.bounds.size.width - self.contentSize.width;
     CGFloat availableOffsetY = self.bounds.size.height - self.contentSize.height;
+
+    availableOffsetX = MIN(0, availableOffsetX);
+    availableOffsetY = MIN(0, availableOffsetY);
+
     
     CGFloat deltaX = contentOffset.x - _contentOffset.x;
     CGFloat deltaY = contentOffset.y - _contentOffset.y;
     
-    if (!self.bounces) {
-        if (contentOffset.x < availableOffsetX || 0 < contentOffset.x) {
-            deltaX = 0;
-        }
+    if (self.bounces) {
         
-        if (contentOffset.y < availableOffsetY || 0 < contentOffset.y) {
-            deltaY = 0;
-        }
-    } else {
-
         if (contentOffset.x < availableOffsetX || 0 < contentOffset.x) {
             
             POPSpringAnimation *animation = [self pop_animationForKey:@"stp.scrollView.animation.bounce.x"];
             POPDecayAnimation *decayAnimation = [self pop_animationForKey:@"stp.scrollView.animation.decay.x"];
-
+            
             if (!animation) {
                 if (decayAnimation) {
                     [self pop_removeAnimationForKey:@"stp.scrollView.animation.decay.x"];
@@ -246,13 +242,12 @@
                             contentOffset.x = values[0];
                             [obj setContentOffset:contentOffset];
                         };
-                        // dynamics threshold
                         prop.threshold = 0.01;
                     }];
                     bouncsAnimation.property = prop;
                     bouncsAnimation.velocity = decayAnimation.velocity;
                     bouncsAnimation.delegate = self;
-              
+                    
                     if (0 < contentOffset.x) {
                         bouncsAnimation.toValue = @(0);
                     }
@@ -287,23 +282,33 @@
                             contentOffset.y = values[0];
                             [obj setContentOffset:contentOffset];
                         };
-                        // dynamics threshold
                         prop.threshold = 0.01;
                     }];
                     bouncsAnimation.property = prop;
                     bouncsAnimation.velocity = decayAnimation.velocity;
                     bouncsAnimation.delegate = self;
                     if (availableOffsetY < contentOffset.y) {
-                        bouncsAnimation.toValue = @(availableOffsetY);
-                    } else {
                         bouncsAnimation.toValue = @(0);
+                    } else {
+                        bouncsAnimation.toValue = @(availableOffsetY);
                     }
-
+                    
                     [self pop_addAnimation:bouncsAnimation forKey:@"stp.scrollView.animation.bounce.y"];
                     return;
                 }
             }
         }
+        
+    } else {
+        
+        if (contentOffset.x < availableOffsetX || 0 < contentOffset.x) {
+            deltaX = 0;
+        }
+        
+        if (contentOffset.y < availableOffsetY || 0 < contentOffset.y) {
+            deltaY = 0;
+        }
+        
     }
     
     CGPoint deltaPoint = CGPointMake(deltaX, deltaY);
@@ -331,7 +336,10 @@
             
             _initialTouchPoint = location;
             _initialTransform = self.zoomView.layer.affineTransform;
+            CGPoint locationInZoomView = [recognizer locationInView:self.zoomView];
+            CGPoint anchorPoint = CGPointMake( locationInZoomView.x / self.zoomView.bounds.size.width, locationInZoomView.y / self.zoomView.bounds.size.height);
             
+            [self _convertAnchorPoint:anchorPoint];
             [recognizer setScale:self.zoomScale];
         }
             break;
@@ -347,7 +355,6 @@
             if (self.maximumZoomScale < targetScale) {
                 targetScale = self.maximumZoomScale + (targetScale - self.maximumZoomScale) / RESISTANCE_INTERACTIVE;
             }
-
             
             [self setZoomScale:targetScale];
 
@@ -355,8 +362,17 @@
             break;
         case UIGestureRecognizerStateEnded:
         {
+            CGFloat targetScale = recognizer.scale;
             
-            [self setZoomScale:recognizer.scale animated:self.bouncesZoom];
+            if (targetScale < self.minimumZoomScale) {
+                targetScale = self.minimumZoomScale - (self.minimumZoomScale - targetScale) / RESISTANCE_INTERACTIVE;
+            }
+            
+            if (self.maximumZoomScale < targetScale) {
+                targetScale = self.maximumZoomScale + (targetScale - self.maximumZoomScale) / RESISTANCE_INTERACTIVE;
+            }
+            
+            [self setZoomScale:targetScale animated:self.bouncesZoom];
             
         }
             break;
@@ -402,6 +418,7 @@
     }
     
     self.contentSize = self.zoomView.frame.size;
+
 }
 
 - (void)setZoomScale:(CGFloat)scale animated:(BOOL)animated
@@ -426,7 +443,6 @@
             prop.writeBlock = ^(id obj, const CGFloat values[]) {
                 [obj setZoomScale:values[0]];
             };
-            // dynamics threshold
             prop.threshold = 0.01;
         }];
         zoomAnimation.property = prop;
@@ -444,13 +460,12 @@
 - (void)zoomToRect:(CGRect)rect animated:(BOOL)animated
 {
     
+    [self _convertAnchorPoint:CGPointMake(0, 0)];
     
     CGFloat scaleX = self.bounds.size.width / rect.size.width;
     CGFloat scaleY = self.bounds.size.height / rect.size.height;
     CGFloat scale = MAX(scaleX, scaleY);
     CGPoint targetOffset = CGPointMake(-rect.origin.x, -rect.origin.y);
-    
-    //[self _convertAnchorPoint:CGPointMake(0, 0)];
     
     if (animated) {
         
@@ -488,8 +503,7 @@
         }];
         offsetAnimation.toValue = [NSValue valueWithCGPoint:targetOffset];
         
-        [self pop_addAnimation:zoomAnimation forKey:@"stp.scrollView.animation.offset"];
-        
+        [self pop_addAnimation:offsetAnimation forKey:@"stp.scrollView.animation.offset"];
         
     } else {
         [self setZoomScale:scale];
