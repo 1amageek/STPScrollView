@@ -9,6 +9,10 @@
 #import <UIKit/UIKit.h>
 #import "STPScrollViewPanGestureRecognizer.h"
 
+
+UIKIT_EXTERN const CGFloat STPScrollViewDecelerationRateNormal;
+UIKIT_EXTERN const CGFloat STPScrollViewDecelerationRateFast;
+
 @protocol STPScrollViewDelegate;
 @interface STPScrollView : UIView
 

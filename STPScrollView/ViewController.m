@@ -8,6 +8,21 @@
 
 #import "ViewController.h"
 
+
+@implementation ScrollView
+/*
+- (void)addSubview:(UIView *)view
+{
+    NSLog(@"+view %@ bounds %@", view, NSStringFromCGRect(view.bounds));
+    [super addSubview:view];
+    NSLog(@"-view %@ %@", view, NSStringFromCGRect(view.bounds));
+}
+*/
+@end
+
+
+
+
 @interface ViewController () <STPScrollViewDelegate, UIScrollViewDelegate, UICollectionViewDataSource, UICollectionViewDelegate>
 
 @property (nonatomic) UICollectionView *contentView;
@@ -25,12 +40,14 @@
     CGRect screenRect = [UIScreen mainScreen].bounds;
     
 
-    _scrollView = [[STPScrollView alloc] initWithFrame:screenRect];
+    _scrollView = [[ScrollView alloc] initWithFrame:screenRect];
     _scrollView.delegate = self;
+    _scrollView.contentInset = UIEdgeInsetsMake(10, 10, 50, 50);
     _scrollView.minimumZoomScale = 0.4;
     _scrollView.maximumZoomScale = 40;
     _scrollView.bouncesZoom = YES;
-    _scrollView.contentSize = CGSizeMake(500, 800);
+    //_scrollView.directionalLockEnabled = YES;
+    _scrollView.contentSize = [UIScreen mainScreen].bounds.size;
     
     UICollectionViewFlowLayout *layout = [UICollectionViewFlowLayout new];
     
@@ -55,6 +72,13 @@
 - (void)tapped:(UITapGestureRecognizer *)recognizer
 {
     //[self.scrollView setZoomScale:0.5 animated:YES];
+    
+    NSLog(@"_contentView frame%@", NSStringFromCGRect(_contentView.frame));
+    NSLog(@"_contentView bounds%@", NSStringFromCGRect(_contentView.bounds));
+    
+    NSLog(@"_scrollVeiw frame %@", NSStringFromCGRect(_scrollView.frame));
+    NSLog(@"_scrollView bounds %@", NSStringFromCGRect(_scrollView.bounds));
+    
     CGRect rect = [self zoomRectForScrollView:self.scrollView withScale:1.1 withCenter:[recognizer locationInView:self.contentView]];
     [self.scrollView zoomToRect:rect animated:YES];
     

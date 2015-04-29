@@ -76,6 +76,22 @@
     
 }
 
+- (void)setContentInset:(UIEdgeInsets)contentInset
+{
+    _contentInset = contentInset;
+    
+    CGRect rect = self.bounds;
+    rect.origin.x    -= contentInset.left;
+    rect.origin.y    -= contentInset.top;
+    
+    //rect.size.width  -= (contentInset.left + contentInset.right);
+    //rect.size.height -= (contentInset.top  + contentInset.bottom);
+
+    [self setBounds:rect];
+    [self setContentOffset:CGPointMake(contentInset.left, contentInset.top)];
+    
+}
+
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
     [self pop_removeAnimationForKey:@"stp.scrollView.animation.decay.x"];
@@ -208,8 +224,8 @@
 - (void)setContentOffset:(CGPoint)contentOffset
 {
     
-    CGFloat availableOffsetX = self.bounds.size.width - self.contentSize.width;
-    CGFloat availableOffsetY = self.bounds.size.height - self.contentSize.height;
+    CGFloat availableOffsetX = self.bounds.size.width - self.contentSize.width - (self.contentInset.right);
+    CGFloat availableOffsetY = self.bounds.size.height - self.contentSize.height - (self.contentInset.bottom);
 
     availableOffsetX = MIN(0, availableOffsetX);
     availableOffsetY = MIN(0, availableOffsetY);
@@ -220,7 +236,7 @@
     
     if (self.bounces) {
         
-        if (contentOffset.x < availableOffsetX || 0 < contentOffset.x) {
+        if (contentOffset.x < availableOffsetX || self.contentInset.left < contentOffset.x) {
             
             POPSpringAnimation *animation = [self pop_animationForKey:@"stp.scrollView.animation.bounce.x"];
             POPDecayAnimation *decayAnimation = [self pop_animationForKey:@"stp.scrollView.animation.decay.x"];
@@ -248,8 +264,8 @@
                     bouncsAnimation.velocity = decayAnimation.velocity;
                     bouncsAnimation.delegate = self;
                     
-                    if (0 < contentOffset.x) {
-                        bouncsAnimation.toValue = @(0);
+                    if (self.contentInset.left < contentOffset.x) {
+                        bouncsAnimation.toValue = @(self.contentInset.left);
                     }
                     
                     if (contentOffset.x < availableOffsetX) {
@@ -262,7 +278,7 @@
             }
         }
         
-        if (contentOffset.y < availableOffsetY || 0 < contentOffset.y) {
+        if (contentOffset.y < availableOffsetY || self.contentInset.top < contentOffset.y) {
             POPSpringAnimation *animation = [self pop_animationForKey:@"stp.scrollView.animation.bounce.y"];
             POPDecayAnimation *decayAnimation = [self pop_animationForKey:@"stp.scrollView.animation.decay.y"];
             if (!animation) {
@@ -287,9 +303,11 @@
                     bouncsAnimation.property = prop;
                     bouncsAnimation.velocity = decayAnimation.velocity;
                     bouncsAnimation.delegate = self;
-                    if (availableOffsetY < contentOffset.y) {
-                        bouncsAnimation.toValue = @(0);
-                    } else {
+                    if (self.contentInset.top < contentOffset.y) {
+                        bouncsAnimation.toValue = @(self.contentInset.top);
+                    }
+                    
+                    if (contentOffset.y < availableOffsetY) {
                         bouncsAnimation.toValue = @(availableOffsetY);
                     }
                     
@@ -334,13 +352,16 @@
         {
             [self pop_removeAnimationForKey:@"stp.scrollView.animation.zoom"];
             
+            _zooming = YES;
             _initialTouchPoint = location;
             _initialTransform = self.zoomView.layer.affineTransform;
+            
             CGPoint locationInZoomView = [recognizer locationInView:self.zoomView];
             CGPoint anchorPoint = CGPointMake( locationInZoomView.x / self.zoomView.bounds.size.width, locationInZoomView.y / self.zoomView.bounds.size.height);
             
             [self _convertAnchorPoint:anchorPoint];
             [recognizer setScale:self.zoomScale];
+            
         }
             break;
         case UIGestureRecognizerStateChanged:
@@ -362,6 +383,7 @@
             break;
         case UIGestureRecognizerStateEnded:
         {
+            _zooming = NO;
             CGFloat targetScale = recognizer.scale;
             
             if (targetScale < self.minimumZoomScale) {
@@ -426,6 +448,7 @@
     if (animated) {
         
         _animating = YES;
+        _zoomBouncing = YES;
         
         if (scale < self.minimumZoomScale) {
             scale = self.minimumZoomScale;
@@ -436,6 +459,7 @@
         }
         
         POPBasicAnimation *zoomAnimation = [POPBasicAnimation animation];
+
         POPAnimatableProperty *prop = [POPAnimatableProperty propertyWithName:@"stp.scrollView.animation.zoom.property" initializer:^(POPMutableAnimatableProperty *prop) {
             prop.readBlock = ^(id obj, CGFloat values[]) {
                 values[0] = [obj zoomScale];
@@ -447,7 +471,10 @@
         }];
         zoomAnimation.property = prop;
         zoomAnimation.toValue = @(scale);
-        
+        zoomAnimation.delegate = self;
+        zoomAnimation.completionBlock = ^(POPAnimation *anim, BOOL finished){
+            _zoomBouncing = NO;
+        };
         [self pop_addAnimation:zoomAnimation forKey:@"stp.scrollView.animation.zoom"];
 
         
@@ -481,7 +508,10 @@
         }];
         zoomAnimation.property = prop;
         zoomAnimation.toValue = @(scale);
-        
+        zoomAnimation.delegate = self;
+        zoomAnimation.completionBlock = ^(POPAnimation *anim, BOOL finished){
+            _zoomBouncing = NO;
+        };
         [self pop_addAnimation:zoomAnimation forKey:@"stp.scrollView.animation.zoom"];
         
         
@@ -502,6 +532,7 @@
             prop.threshold = 0.01;
         }];
         offsetAnimation.toValue = [NSValue valueWithCGPoint:targetOffset];
+        offsetAnimation.delegate = self;
         
         [self pop_addAnimation:offsetAnimation forKey:@"stp.scrollView.animation.offset"];
         
@@ -548,9 +579,6 @@
     if (![[self pop_animationKeys] count]) {
         _animating = NO;
     }
-    
-    
-    
 }
 
 @end
