@@ -40,21 +40,27 @@
     CGRect screenRect = [UIScreen mainScreen].bounds;
     
 
-    _scrollView = [[ScrollView alloc] initWithFrame:screenRect];
+    _scrollView = [[STPScrollView alloc] initWithFrame:screenRect];
     _scrollView.delegate = self;
     _scrollView.contentInset = UIEdgeInsetsMake(10, 10, 50, 50);
     _scrollView.minimumZoomScale = 0.4;
     _scrollView.maximumZoomScale = 40;
-    _scrollView.bouncesZoom = YES;
+    _scrollView.bouncesZoom = NO;
+    //_scrollView.decelerationRate = UIScrollViewDecelerationRateFast;
+    //_scrollView.bounces = NO;
+    //_scrollView.contentOffset = CGPointMake(100, 0);
     //_scrollView.directionalLockEnabled = YES;
-    _scrollView.contentSize = [UIScreen mainScreen].bounds.size;
+    
+    CGSize contentSize = [UIScreen mainScreen].bounds.size;
+    contentSize.width = contentSize.width * 4;
+    _scrollView.contentSize = contentSize;
     
     UICollectionViewFlowLayout *layout = [UICollectionViewFlowLayout new];
     
     layout.itemSize = CGSizeMake([UIScreen mainScreen].bounds.size.width/7, [UIScreen mainScreen].bounds.size.height/10);
     layout.scrollDirection = UICollectionViewScrollDirectionHorizontal;
     
-    _contentView = [[UICollectionView alloc] initWithFrame:[UIScreen mainScreen].bounds collectionViewLayout:layout];
+    _contentView = [[UICollectionView alloc] initWithFrame:(CGRect){CGPointZero, contentSize} collectionViewLayout:layout];
     _contentView.delegate = self;
     _contentView.dataSource = self;
     _contentView.userInteractionEnabled = NO;
@@ -66,6 +72,11 @@
 
     [self.view addSubview:_scrollView];
     [self.scrollView addSubview:_contentView];
+    
+    UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0, 100, contentSize.width, 10)];
+    view.backgroundColor = [UIColor redColor];
+    
+    [self.scrollView addSubview:view];
     
 }
 
@@ -81,7 +92,19 @@
     
     CGRect rect = [self zoomRectForScrollView:self.scrollView withScale:1.1 withCenter:[recognizer locationInView:self.contentView]];
     [self.scrollView zoomToRect:rect animated:YES];
+    /*
+    CGRect rect = [UIScreen mainScreen].bounds;
     
+    rect.origin.x = 0;
+    rect.origin.y = 100;
+    rect.size.width = rect.size.width * 8;
+    rect.size.height = 10;
+    //[self.scrollView setContentOffset:CGPointMake(20, 20)];
+    NSLog(@"sec %@", self.scrollView);
+    
+    //[self.scrollView scrollRectToVisible:rect animated:YES];
+    
+    */
 }
 
 - (CGRect)zoomRectForScrollView:(STPScrollView *)scrollView withScale:(float)scale withCenter:(CGPoint)center {
@@ -115,7 +138,7 @@
 
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section
 {
-    return 90;
+    return 200;
 }
 
 - (void)collectionView:(UICollectionView *)collectionView didEndDisplayingCell:(UICollectionViewCell *)cell forItemAtIndexPath:(NSIndexPath *)indexPath

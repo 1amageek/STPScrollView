@@ -16,7 +16,7 @@
 
 @interface ViewController : UIViewController
 
-@property (nonatomic) ScrollView *scrollView;
+@property (nonatomic) STPScrollView *scrollView;
 @property (nonatomic) UIScrollView *sllView;
 
 @end

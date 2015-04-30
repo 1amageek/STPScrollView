@@ -28,6 +28,15 @@ UIKIT_EXTERN const CGFloat STPScrollViewDecelerationRateFast;
 @property (nonatomic,getter=isScrollEnabled) BOOL          scrollEnabled;                  // default YES. turn off any dragging temporarily
 @property (nonatomic)         CGFloat                      decelerationRate;
 
+- (void)setContentOffset:(CGPoint)contentOffset animated:(BOOL)animated;  // animate at constant velocity to new offset
+- (void)scrollRectToVisible:(CGRect)rect animated:(BOOL)animated;         // scroll so rect is just visible (nearest edges). nothing if rect completely visible
+
+
+@property(nonatomic,readonly,getter=isTracking)     BOOL tracking;        // returns YES if user has touched. may not yet have started dragging
+@property(nonatomic,readonly,getter=isDragging)     BOOL dragging;        // returns YES if user has started scrolling. this may require some time and or distance to move to initiate dragging
+@property(nonatomic,readonly,getter=isDecelerating) BOOL decelerating;    // returns YES if user isn't dragging (touch up) but scroll view is still moving
+
+
 @property(nonatomic) CGFloat minimumZoomScale;     // default is 1.0
 @property(nonatomic) CGFloat maximumZoomScale;     // default is 1.0. must be > minimum zoom scale to enable zooming
 
@@ -66,7 +75,7 @@ UIKIT_EXTERN const CGFloat STPScrollViewDecelerationRateFast;
 - (void)scrollViewDidEndDecelerating:(STPScrollView *)scrollView;      // called when scroll view grinds to a halt
 
 
-//- (void)scrollViewDidEndScrollingAnimation:(STPScrollView *)scrollView; // called when setContentOffset/scrollRectVisible:animated: finishes. not called if not animating
+- (void)scrollViewDidEndScrollingAnimation:(STPScrollView *)scrollView; // called when setContentOffset/scrollRectVisible:animated: finishes. not called if not animating
 
 - (UIView *)viewForZoomingInScrollView:(STPScrollView *)scrollView;     // return a view that will be scaled. if delegate returns nil, nothing happens
 /*
