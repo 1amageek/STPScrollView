@@ -42,10 +42,13 @@
 
     _scrollView = [[STPScrollView alloc] initWithFrame:screenRect];
     _scrollView.delegate = self;
-    _scrollView.contentInset = UIEdgeInsetsMake(10, 10, 50, 50);
+    //_scrollView.contentInset = UIEdgeInsetsMake(10, 10, 50, 50);
     _scrollView.minimumZoomScale = 0.4;
     _scrollView.maximumZoomScale = 40;
     _scrollView.bouncesZoom = NO;
+    _scrollView.directionalLockEnabled = YES;
+    //_scrollView.alwaysBounceVertical = NO;
+    
     //_scrollView.decelerationRate = UIScrollViewDecelerationRateFast;
     //_scrollView.bounces = NO;
     //_scrollView.contentOffset = CGPointMake(100, 0);
@@ -53,8 +56,9 @@
     
     CGSize contentSize = [UIScreen mainScreen].bounds.size;
     contentSize.width = contentSize.width * 4;
+    contentSize.height = contentSize.height * 2;
     _scrollView.contentSize = contentSize;
-    
+    //contentSize.height = contentSize.height * 0.8;
     UICollectionViewFlowLayout *layout = [UICollectionViewFlowLayout new];
     
     layout.itemSize = CGSizeMake([UIScreen mainScreen].bounds.size.width/7, [UIScreen mainScreen].bounds.size.height/10);

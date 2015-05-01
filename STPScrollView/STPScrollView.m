@@ -25,6 +25,9 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
     BOOL _animating;
     BOOL _deceleratingX;
     BOOL _deceleratingY;
+    BOOL _lock;
+    BOOL _directionalLockVertical;
+    BOOL _directionalLockHorizontal;
 }
 
 @property (nonatomic) UIView *zoomView;
@@ -57,6 +60,11 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
     _animating = NO;
     _deceleratingX = NO;
     _deceleratingY = NO;
+    
+    _lock = NO;
+    _directionalLockVertical = NO;
+    _directionalLockHorizontal = NO;
+    
     _contentOffset = CGPointZero;
     _contentSize = CGSizeZero;
     _contentInset = UIEdgeInsetsZero;
@@ -129,6 +137,7 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
             _decelerating = NO;
             
             _initialTouchPoint = location;
+            
             [self pop_removeAnimationForKey:@"stp.scrollView.animation.decay.x"];
             [self pop_removeAnimationForKey:@"stp.scrollView.animation.decay.y"];
             
@@ -145,6 +154,25 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
             _tracking = NO;
             _dragging = YES;
             _decelerating = NO;
+            
+            if (self.directionalLockEnabled) {
+                if (!_lock) {
+                    _lock = YES;
+                    
+                    CGFloat translationX = translation.x * translation.x;
+                    CGFloat translationY = translation.y * translation.y;
+                    
+                    if (translationX < translationY) {
+                        NSLog(@"_directionalLockHorizontal");
+                        _directionalLockHorizontal = YES;
+                    }
+                    
+                    if (translationY < translationX) {
+                        NSLog(@"_directionalLockVertical");
+                        _directionalLockVertical = YES;
+                    }
+                }
+            }
             
             CGFloat availableOffsetX = self.contentSize.width - self.bounds.size.width + self.contentInset.right;
             CGFloat availableOffsetY = self.contentSize.height - self.bounds.size.height + self.contentInset.bottom;
@@ -174,6 +202,8 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
             _tracking = NO;
             _dragging = NO;
             _decelerating = YES;
+            
+            
             
             if ([self.delegate respondsToSelector:@selector(scrollViewDidEndDragging:willDecelerate:)]) {
                 [self.delegate scrollViewDidEndDragging:self willDecelerate:self.bounces];
@@ -215,7 +245,7 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
                         [self.delegate scrollViewDidEndDecelerating:self];
                     }
                 }
-                
+            
             };
             [self pop_addAnimation:decayAnimationX forKey:@"stp.scrollView.animation.decay.x"];
             
@@ -476,8 +506,20 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
 
     CGFloat deltaX = contentOffset.x - _contentOffset.x;
     CGFloat deltaY = contentOffset.y - _contentOffset.y;
-    /*
+    
     if (self.bounces) {
+        
+        if (!self.alwaysBounceVertical) {
+            if (contentOffset.y < self.contentInset.top || availableOffsetY < contentOffset.y) {
+                deltaY = 0;
+            }
+        }
+        
+        if (!self.alwaysBounceHorizontal) {
+            if (contentOffset.x < self.contentInset.left || availableOffsetX < contentOffset.x) {
+                deltaX = 0;
+            }
+        }
         
         
     } else {
@@ -489,12 +531,20 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
         if (contentOffset.y < self.contentInset.top || availableOffsetY < contentOffset.y) {
             deltaY = 0;
         }
-        
-    }*/
+    
+    }
+    
+    if (_directionalLockVertical) {
+        deltaY = 0;
+    }
+    
+    if (_directionalLockHorizontal) {
+        deltaX = 0;
+    }
     
     CGPoint deltaPoint = CGPointMake(deltaX, deltaY);
     _contentOffset = contentOffset;
-    NSLog(@"offset %@", NSStringFromCGPoint(contentOffset));
+
     [self.subviews enumerateObjectsUsingBlock:^(UIView *view, NSUInteger idx, BOOL *stop) {
         view.layer.position = CGPointMake(view.layer.position.x - deltaPoint.x, view.layer.position.y - deltaPoint.y);
     }];
@@ -742,6 +792,11 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
 {
     if (![[self pop_animationKeys] count]) {
         _animating = NO;
+        if (finished) {
+            _lock = NO;
+            _directionalLockHorizontal = NO;
+            _directionalLockVertical = NO;
+        }
     }
     
     
