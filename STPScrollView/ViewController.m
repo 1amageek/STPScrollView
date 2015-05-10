@@ -38,19 +38,17 @@
     
     
     CGRect screenRect = [UIScreen mainScreen].bounds;
-    
-
     _scrollView = [[STPScrollView alloc] initWithFrame:screenRect];
     _scrollView.delegate = self;
     //_scrollView.contentInset = UIEdgeInsetsMake(10, 10, 50, 50);
     _scrollView.minimumZoomScale = 0.4;
     _scrollView.maximumZoomScale = 40;
-    _scrollView.bouncesZoom = NO;
+    _scrollView.bouncesZoom = YES;
     _scrollView.directionalLockEnabled = YES;
     //_scrollView.alwaysBounceVertical = NO;
     
     //_scrollView.decelerationRate = UIScrollViewDecelerationRateFast;
-    //_scrollView.bounces = NO;
+    //_scrollView.bounces = YES;
     //_scrollView.contentOffset = CGPointMake(100, 0);
     //_scrollView.directionalLockEnabled = YES;
     
@@ -69,11 +67,7 @@
     _contentView.dataSource = self;
     _contentView.userInteractionEnabled = NO;
     [_contentView registerClass:[UICollectionViewCell class] forCellWithReuseIdentifier:@"cell"];
-    self.tapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapped:)];
-
-    [self.scrollView addGestureRecognizer:self.tapGestureRecognizer];
-    
-
+ 
     [self.view addSubview:_scrollView];
     [self.scrollView addSubview:_contentView];
     
@@ -81,6 +75,7 @@
     view.backgroundColor = [UIColor redColor];
     
     [self.scrollView addSubview:view];
+    
     
 }
 

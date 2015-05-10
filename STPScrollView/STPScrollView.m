@@ -12,6 +12,12 @@
 #define RESISTANCE_INTERACTIVE 3
 
 
+typedef NS_ENUM(NSInteger, STPScrollViewScrollDirection)
+{
+    STPScrollViewScrollDirectionEvery,
+    STPScrollViewScrollDirectionVertical,
+    STPScrollViewScrollDirectionHorizontal
+};
 
 const CGFloat STPScrollViewDecelerationRateNormal = 0.997;
 const CGFloat STPScrollViewDecelerationRateFast = 0.985;
@@ -25,12 +31,13 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
     BOOL _animating;
     BOOL _deceleratingX;
     BOOL _deceleratingY;
-    BOOL _lock;
-    BOOL _directionalLockVertical;
-    BOOL _directionalLockHorizontal;
+    BOOL _directionalLock;
+
 }
 
 @property (nonatomic) UIView *zoomView;
+@property (nonatomic) STPScrollViewScrollDirection direction;
+
 
 @end
 
@@ -61,10 +68,6 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
     _deceleratingX = NO;
     _deceleratingY = NO;
     
-    _lock = NO;
-    _directionalLockVertical = NO;
-    _directionalLockHorizontal = NO;
-    
     _contentOffset = CGPointZero;
     _contentSize = CGSizeZero;
     _contentInset = UIEdgeInsetsZero;
@@ -86,6 +89,9 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
     
     _zooming = NO;
     _zoomBouncing = NO;
+    
+    _directionalLock = NO;
+    _direction = STPScrollViewScrollDirectionEvery;
     
     _panGestureRecognizer = [[STPScrollViewPanGestureRecognizer alloc] initWithTarget:self action:@selector(panGesture:)];
     _panGestureRecognizer.delegate = self;
@@ -145,6 +151,23 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
                 [self.delegate scrollViewWillBeginDragging:self];
             }
             
+            if (self.directionalLockEnabled) {
+                NSLog(@"translation %@", NSStringFromCGPoint(translation));
+                if (!_directionalLock) {
+                    CGFloat x = translation.x * translation.x;
+                    CGFloat y = translation.y * translation.y;
+                    if (x > y) {
+                        _directionalLock = YES;
+                        _direction = STPScrollViewScrollDirectionHorizontal;
+                    }
+                    if (x < y) {
+                        _directionalLock = YES;
+                        _direction = STPScrollViewScrollDirectionVertical;
+                    }
+                }
+            }
+            
+            
             
         }
             break;
@@ -155,24 +178,6 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
             _dragging = YES;
             _decelerating = NO;
             
-            if (self.directionalLockEnabled) {
-                if (!_lock) {
-                    _lock = YES;
-                    
-                    CGFloat translationX = translation.x * translation.x;
-                    CGFloat translationY = translation.y * translation.y;
-                    
-                    if (translationX < translationY) {
-                        NSLog(@"_directionalLockHorizontal");
-                        _directionalLockHorizontal = YES;
-                    }
-                    
-                    if (translationY < translationX) {
-                        NSLog(@"_directionalLockVertical");
-                        _directionalLockVertical = YES;
-                    }
-                }
-            }
             
             CGFloat availableOffsetX = self.contentSize.width - self.bounds.size.width + self.contentInset.right;
             CGFloat availableOffsetY = self.contentSize.height - self.bounds.size.height + self.contentInset.bottom;
@@ -202,7 +207,6 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
             _tracking = NO;
             _dragging = NO;
             _decelerating = YES;
-            
             
             
             if ([self.delegate respondsToSelector:@selector(scrollViewDidEndDragging:willDecelerate:)]) {
@@ -508,7 +512,7 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
     CGFloat deltaY = contentOffset.y - _contentOffset.y;
     
     if (self.bounces) {
-        
+        /*
         if (!self.alwaysBounceVertical) {
             if (contentOffset.y < self.contentInset.top || availableOffsetY < contentOffset.y) {
                 deltaY = 0;
@@ -521,7 +525,7 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
             }
         }
         
-        
+        */
     } else {
         
         if (contentOffset.x < self.contentInset.left || availableOffsetX < contentOffset.x) {
@@ -534,11 +538,11 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
     
     }
     
-    if (_directionalLockVertical) {
+    if (self.direction == STPScrollViewScrollDirectionHorizontal) {
         deltaY = 0;
     }
     
-    if (_directionalLockHorizontal) {
+    if (self.direction == STPScrollViewScrollDirectionVertical) {
         deltaX = 0;
     }
     
@@ -792,15 +796,8 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
 {
     if (![[self pop_animationKeys] count]) {
         _animating = NO;
-        if (finished) {
-            _lock = NO;
-            _directionalLockHorizontal = NO;
-            _directionalLockVertical = NO;
-        }
+        _directionalLock = NO;
     }
-    
-    
-    
 }
 
 @end

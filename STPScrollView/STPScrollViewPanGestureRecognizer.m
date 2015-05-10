@@ -18,7 +18,7 @@
 {
     self = [super initWithTarget:target action:action];
     if (self) {
-        self.scrollDirection = STPScrollViewScrollDirectionEvery;
+        self.scrollDirection = STPScrollViewPanGestureRecognizerDirectionEvery;
     }
     
     return self;
@@ -42,15 +42,15 @@
         switch (self.scrollDirection) {
                 
             
-            case STPScrollViewScrollDirectionVertical:
+            case STPScrollViewPanGestureRecognizerDirectionVertical:
                 // 横のスクロールと判断するとFailedにする
                 comp = y < x;
                 break;
-            case STPScrollViewScrollDirectionHorizontal:
+            case STPScrollViewPanGestureRecognizerDirectionHorizontal:
                 // 縦のスクロールと判断するとFailedにする
                 comp = x < y;
                 break;
-            case STPScrollViewScrollDirectionEvery:
+            case STPScrollViewPanGestureRecognizerDirectionEvery:
             default:
                 // 全方向でFaildにしない
                 break;

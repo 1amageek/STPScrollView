@@ -9,22 +9,22 @@
 #import <UIKit/UIKit.h>
 #import <UIKit/UIGestureRecognizerSubclass.h>
 
-typedef NS_ENUM(NSInteger, STPScrollViewScrollDirection)
+typedef NS_ENUM(NSInteger, STPScrollViewPanGestureRecognizerDirection)
 {
-    STPScrollViewScrollDirectionEvery,
-    STPScrollViewScrollDirectionVertical,
-    STPScrollViewScrollDirectionHorizontal
+    STPScrollViewPanGestureRecognizerDirectionEvery,
+    STPScrollViewPanGestureRecognizerDirectionVertical,
+    STPScrollViewPanGestureRecognizerDirectionHorizontal
 };
 
 @interface STPScrollViewPanGestureRecognizer : UIPanGestureRecognizer
 
-@property (nonatomic) STPScrollViewScrollDirection scrollDirection; //default STPScrollViewScrollDirectionEvery
+@property (nonatomic) STPScrollViewPanGestureRecognizerDirection scrollDirection; //default STPScrollViewScrollDirectionEvery
 
 @end
 
 
 @protocol STPScrollViewPanGestureRecognizerDelegate <NSObject>
 
-- (STPScrollViewScrollDirection)gestureRecognizerScrollDirection;
+- (STPScrollViewPanGestureRecognizerDirection)gestureRecognizerScrollDirection;
 
 @end
