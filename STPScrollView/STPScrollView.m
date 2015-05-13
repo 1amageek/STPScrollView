@@ -152,7 +152,6 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
             }
             
             if (self.directionalLockEnabled) {
-                NSLog(@"translation %@", NSStringFromCGPoint(translation));
                 if (!_directionalLock) {
                     CGFloat x = translation.x * translation.x;
                     CGFloat y = translation.y * translation.y;
@@ -185,6 +184,15 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
             CGFloat translationX = translation.x;
             CGFloat translationY = translation.y;
             
+            if (self.directionalLockEnabled) {
+                if (_direction == STPScrollViewScrollDirectionVertical) {
+                    translationX = 0;
+                }
+                if (_direction == STPScrollViewScrollDirectionHorizontal) {
+                    translationY = 0;
+                }
+            }
+            
             // contentSizeを超えたときの抵抗
             if (self.contentOffset.x < self.contentInset.left || availableOffsetX < self.contentOffset.x) {
                 translationX = translationX / RESISTANCE_INTERACTIVE;
@@ -208,6 +216,17 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
             _dragging = NO;
             _decelerating = YES;
             
+            CGFloat velocityX = velocity.x;
+            CGFloat velocityY = velocity.y;
+            
+            if (self.directionalLockEnabled) {
+                if (_direction == STPScrollViewScrollDirectionVertical) {
+                    velocityX = 0;
+                }
+                if (_direction == STPScrollViewScrollDirectionHorizontal) {
+                    velocityY = 0;
+                }
+            }
             
             if ([self.delegate respondsToSelector:@selector(scrollViewDidEndDragging:willDecelerate:)]) {
                 [self.delegate scrollViewDidEndDragging:self willDecelerate:self.bounces];
@@ -236,7 +255,7 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
                 prop.threshold = 0.01;
             }];
             decayAnimationX.property = propX;
-            decayAnimationX.velocity = @(-velocity.x);
+            decayAnimationX.velocity = @(-velocityX);
             decayAnimationX.delegate = self;
             decayAnimationX.deceleration = self.decelerationRate;
             decayAnimationX.completionBlock = ^(POPAnimation *anim, BOOL finished) {
@@ -272,7 +291,7 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
                 prop.threshold = 0.01;
             }];
             decayAnimationY.property = propY;
-            decayAnimationY.velocity = @(-velocity.y);
+            decayAnimationY.velocity = @(-velocityY);
             decayAnimationY.delegate = self;
             decayAnimationY.deceleration = self.decelerationRate;
             decayAnimationY.completionBlock = ^(POPAnimation *anim, BOOL finished) {
@@ -510,41 +529,6 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
 
     CGFloat deltaX = contentOffset.x - _contentOffset.x;
     CGFloat deltaY = contentOffset.y - _contentOffset.y;
-    
-    if (self.bounces) {
-        /*
-        if (!self.alwaysBounceVertical) {
-            if (contentOffset.y < self.contentInset.top || availableOffsetY < contentOffset.y) {
-                deltaY = 0;
-            }
-        }
-        
-        if (!self.alwaysBounceHorizontal) {
-            if (contentOffset.x < self.contentInset.left || availableOffsetX < contentOffset.x) {
-                deltaX = 0;
-            }
-        }
-        
-        */
-    } else {
-        
-        if (contentOffset.x < self.contentInset.left || availableOffsetX < contentOffset.x) {
-            deltaX = 0;
-        }
-        
-        if (contentOffset.y < self.contentInset.top || availableOffsetY < contentOffset.y) {
-            deltaY = 0;
-        }
-    
-    }
-    
-    if (self.direction == STPScrollViewScrollDirectionHorizontal) {
-        deltaY = 0;
-    }
-    
-    if (self.direction == STPScrollViewScrollDirectionVertical) {
-        deltaX = 0;
-    }
     
     CGPoint deltaPoint = CGPointMake(deltaX, deltaY);
     _contentOffset = contentOffset;
