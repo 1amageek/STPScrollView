@@ -62,7 +62,7 @@ UIKIT_EXTERN const CGFloat STPScrollViewDecelerationRateFast;
 @optional
 
 - (void)scrollViewDidScroll:(STPScrollView *)scrollView;                                               // any offset changes
-//- (void)scrollViewDidZoom:(STPScrollView *)scrollView; // any zoom scale changes
+- (void)scrollViewDidZoom:(STPScrollView *)scrollView; // any zoom scale changes
 
 // called on start of dragging (may require some time and or distance to move)
 - (void)scrollViewWillBeginDragging:(STPScrollView *)scrollView;
@@ -78,11 +78,11 @@ UIKIT_EXTERN const CGFloat STPScrollViewDecelerationRateFast;
 - (void)scrollViewDidEndScrollingAnimation:(STPScrollView *)scrollView; // called when setContentOffset/scrollRectVisible:animated: finishes. not called if not animating
 
 - (UIView *)viewForZoomingInScrollView:(STPScrollView *)scrollView;     // return a view that will be scaled. if delegate returns nil, nothing happens
-/*
+
 - (void)scrollViewWillBeginZooming:(STPScrollView *)scrollView withView:(UIView *)view; // called before the scroll view begins zooming its content
 - (void)scrollViewDidEndZooming:(STPScrollView *)scrollView withView:(UIView *)view atScale:(CGFloat)scale; // scale between minimum and maximum. called after any 'bounce' animations
-
+/*
 - (BOOL)scrollViewShouldScrollToTop:(STPScrollView *)scrollView;   // return a yes if you want to scroll to the top. if not defined, assumes YES
 - (void)scrollViewDidScrollToTop:(STPScrollView *)scrollView;      // called when scrolling animation finished. may be called immediately if already at top
-*/
+ */
 @end

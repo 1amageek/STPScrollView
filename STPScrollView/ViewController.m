@@ -71,11 +71,13 @@
     [self.view addSubview:_scrollView];
     [self.scrollView addSubview:_contentView];
     
-    UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0, 100, contentSize.width, 10)];
+    UIView *view = [[UIView alloc] initWithFrame:CGRectMake(100, -100, [UIScreen mainScreen].bounds.size.width / 2, [UIScreen mainScreen].bounds.size.height * 2)];
     view.backgroundColor = [UIColor redColor];
     
     [self.scrollView addSubview:view];
     
+    self.tapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapped:)];
+    [self.scrollView addGestureRecognizer:_tapGestureRecognizer];
     
 }
 
@@ -89,21 +91,21 @@
     NSLog(@"_scrollVeiw frame %@", NSStringFromCGRect(_scrollView.frame));
     NSLog(@"_scrollView bounds %@", NSStringFromCGRect(_scrollView.bounds));
     
-    CGRect rect = [self zoomRectForScrollView:self.scrollView withScale:1.1 withCenter:[recognizer locationInView:self.contentView]];
-    [self.scrollView zoomToRect:rect animated:YES];
-    /*
+    //CGRect rect = [self zoomRectForScrollView:self.scrollView withScale:1.1 withCenter:[recognizer locationInView:self.contentView]];
+    //[self.scrollView zoomToRect:rect animated:YES];
+    
     CGRect rect = [UIScreen mainScreen].bounds;
     
-    rect.origin.x = 0;
-    rect.origin.y = 100;
-    rect.size.width = rect.size.width * 8;
-    rect.size.height = 10;
+    rect.origin.x = 100;
+    rect.origin.y = -100;
+    rect.size.width = rect.size.width / 2;
+    rect.size.height = rect.size.height * 2;
     //[self.scrollView setContentOffset:CGPointMake(20, 20)];
     NSLog(@"sec %@", self.scrollView);
     
-    //[self.scrollView scrollRectToVisible:rect animated:YES];
+    [self.scrollView scrollRectToVisible:rect animated:NO];
     
-    */
+    
 }
 
 - (CGRect)zoomRectForScrollView:(STPScrollView *)scrollView withScale:(float)scale withCenter:(CGPoint)center {

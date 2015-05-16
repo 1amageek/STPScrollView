@@ -320,25 +320,31 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
 - (void)scrollRectToVisible:(CGRect)rect animated:(BOOL)animated
 {
     
-    CGFloat limitMinX = CGRectGetMinX(rect);
-    CGFloat limitMinY = CGRectGetMinY(rect);
-    CGFloat limitMaxX = CGRectGetMaxX(rect);
-    CGFloat limitMaxY = CGRectGetMaxY(rect);
+    CGFloat minX = CGRectGetMinX(rect);
+    CGFloat maxX = CGRectGetMaxX(rect);
+    CGFloat minY = CGRectGetMinY(rect);
+    CGFloat maxY = CGRectGetMaxY(rect);
     
-    CGPoint targetContentOffset = self.contentOffset;
+    CGRect visibleRect = (CGRect){self.contentOffset, self.bounds.size};
+    CGPoint offset = self.contentOffset;
     
-    if (1) {
-        
+    if (minX <= CGRectGetMinX(visibleRect)) {
+        offset.x = minX;
     }
-
     
-    if (animated) {
-        
-    } else {
-        
-        //self.contentOffset.x
-        
+    if (CGRectGetMaxX(visibleRect) <= maxX) {
+        offset.x = maxX - visibleRect.size.width;
     }
+    
+    if (minY < CGRectGetMinY(visibleRect)) {
+        offset.y = minY;
+    }
+    
+    if (CGRectGetMaxY(visibleRect) <= maxY) {
+        offset.y = maxY - visibleRect.size.height;
+    }
+    
+    [self setContentOffset:[self _limitOffset:offset] animated:animated];
 }
 
 - (void)setContentOffset:(CGPoint)contentOffset bounces:(BOOL)bounces
@@ -458,7 +464,7 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
             prop.writeBlock = ^(id obj, const CGFloat values[]) {
                 
                 CGPoint contentOffset = [obj contentOffset];
-                contentOffset.y = values[0];
+                contentOffset.x = values[0];
                 [obj setContentOffset:contentOffset];
                 
             };
@@ -471,19 +477,12 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
             
             animationXFinished = NO;
             
-            // 2軸のアニメーションが終了してからProtocolを呼び出し
-            if (animationXFinished && animationYFinished) {
-                if ([self.delegate respondsToSelector:@selector(scrollViewDidEndScrollingAnimation:)]) {
-                    [self.delegate scrollViewDidEndScrollingAnimation:self];
-                }
-            }
-            
         };
         [self pop_addAnimation:animationX forKey:@"stp.scrollView.animation.scroll.x"];
         
         
         POPBasicAnimation *animationY = [POPBasicAnimation animation];
-        animationX.property = [POPAnimatableProperty propertyWithName:@"stp.scrollView.animation.scroll.property.y" initializer:^(POPMutableAnimatableProperty *prop) {
+        animationY.property = [POPAnimatableProperty propertyWithName:@"stp.scrollView.animation.scroll.property.y" initializer:^(POPMutableAnimatableProperty *prop) {
             prop.readBlock = ^(id obj, CGFloat values[]) {
                 values[0] = [obj contentOffset].y;
             };
@@ -503,15 +502,8 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
             
             animationYFinished = NO;
             
-            // 2軸のアニメーションが終了してからProtocolを呼び出し
-            if (animationXFinished && animationYFinished) {
-                if ([self.delegate respondsToSelector:@selector(scrollViewDidEndScrollingAnimation:)]) {
-                    [self.delegate scrollViewDidEndScrollingAnimation:self];
-                }
-            }
-            
         };
-        [self pop_addAnimation:animationX forKey:@"stp.scrollView.animation.scroll.x"];
+        [self pop_addAnimation:animationY forKey:@"stp.scrollView.animation.scroll.y"];
         
     } else {
         [self setContentOffset:contentOffset];
@@ -563,6 +555,11 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
             
             [self _convertAnchorPoint:anchorPoint];
             [recognizer setScale:self.zoomScale];
+            
+            if ([self.delegate respondsToSelector:@selector(scrollViewWillBeginZooming:withView:)]) {
+                [self.delegate scrollViewWillBeginZooming:self withView:self.zoomView];
+            }
+            
             
         }
             break;
@@ -642,7 +639,9 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
     }
     
     self.contentSize = self.zoomView.frame.size;
-
+    if ([self.delegate respondsToSelector:@selector(scrollViewDidZoom:)]) {
+        [self.delegate scrollViewDidZoom:self];
+    }
 }
 
 - (void)setZoomScale:(CGFloat)scale animated:(BOOL)animated
@@ -676,6 +675,11 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
         zoomAnimation.delegate = self;
         zoomAnimation.completionBlock = ^(POPAnimation *anim, BOOL finished){
             _zoomBouncing = NO;
+            if (finished) {
+                if ([self.delegate respondsToSelector:@selector(scrollViewDidEndZooming:withView:atScale:)]) {
+                    [self.delegate scrollViewDidEndZooming:self withView:self.zoomView atScale:scale];
+                }
+            }
         };
         [self pop_addAnimation:zoomAnimation forKey:@"stp.scrollView.animation.zoom"];
 
@@ -757,6 +761,28 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
     position.x = position.x - toPointX;
     position.y = position.y - toPointY;
     self.zoomView.layer.position = position;
+}
+
+- (CGPoint)_limitOffset:(CGPoint)offset
+{
+    CGFloat maxX = self.contentSize.width - self.bounds.size.width;
+    CGFloat maxY = self.contentSize.height - self.bounds.size.height;
+    
+    if (offset.x < 0) {
+        offset.x = 0;
+    }
+    if (maxX < offset.x) {
+        offset.x = maxX;
+    }
+    
+    if (offset.y < 0) {
+        offset.y = 0;
+    }
+    if (maxY < offset.y) {
+        offset.y = maxY;
+    }
+    
+    return offset;
 }
 
 
