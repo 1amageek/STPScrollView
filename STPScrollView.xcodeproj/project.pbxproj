@@ -9,13 +9,15 @@
 /* Begin PBXBuildFile section */
 		8C6240C91AB90355004C51BB /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 8C6240C81AB90355004C51BB /* main.m */; };
 		8C6240CC1AB90355004C51BB /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 8C6240CB1AB90355004C51BB /* AppDelegate.m */; };
-		8C6240CF1AB90355004C51BB /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 8C6240CE1AB90355004C51BB /* ViewController.m */; };
 		8C6240D21AB90355004C51BB /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 8C6240D01AB90355004C51BB /* Main.storyboard */; };
 		8C6240D41AB90355004C51BB /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8C6240D31AB90355004C51BB /* Images.xcassets */; };
 		8C6240D71AB90355004C51BB /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 8C6240D51AB90355004C51BB /* LaunchScreen.xib */; };
 		8C6240E31AB90355004C51BB /* STPScrollViewTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 8C6240E21AB90355004C51BB /* STPScrollViewTests.m */; };
 		8C9618AB1AEC9FA900BD425F /* STPScrollView.m in Sources */ = {isa = PBXBuildFile; fileRef = 8C9618AA1AEC9FA900BD425F /* STPScrollView.m */; };
 		8C9618AE1AECA01200BD425F /* STPScrollViewPanGestureRecognizer.m in Sources */ = {isa = PBXBuildFile; fileRef = 8C9618AD1AECA01200BD425F /* STPScrollViewPanGestureRecognizer.m */; };
+		8CFB7D591B073D5900BB0089 /* TableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 8CFB7D581B073D5900BB0089 /* TableViewController.m */; };
+		8CFB7D5C1B073EA300BB0089 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 8CFB7D5B1B073EA300BB0089 /* ViewController.m */; };
+		8CFB7D941B08B60300BB0089 /* STPScrollViewPinchGestureRecognizer.m in Sources */ = {isa = PBXBuildFile; fileRef = 8CFB7D931B08B60300BB0089 /* STPScrollViewPinchGestureRecognizer.m */; };
 		C81A582E3D1ED3F10658EFD5 /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F74ABFB6705069E3A2641567 /* libPods.a */; };
 /* End PBXBuildFile section */
 
@@ -37,8 +39,6 @@
 		8C6240C81AB90355004C51BB /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		8C6240CA1AB90355004C51BB /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		8C6240CB1AB90355004C51BB /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
-		8C6240CD1AB90355004C51BB /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
-		8C6240CE1AB90355004C51BB /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
 		8C6240D11AB90355004C51BB /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		8C6240D31AB90355004C51BB /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		8C6240D61AB90355004C51BB /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/LaunchScreen.xib; sourceTree = "<group>"; };
@@ -49,6 +49,12 @@
 		8C9618AA1AEC9FA900BD425F /* STPScrollView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = STPScrollView.m; sourceTree = "<group>"; };
 		8C9618AC1AECA01200BD425F /* STPScrollViewPanGestureRecognizer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = STPScrollViewPanGestureRecognizer.h; sourceTree = "<group>"; };
 		8C9618AD1AECA01200BD425F /* STPScrollViewPanGestureRecognizer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = STPScrollViewPanGestureRecognizer.m; sourceTree = "<group>"; };
+		8CFB7D571B073D5900BB0089 /* TableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TableViewController.h; sourceTree = "<group>"; };
+		8CFB7D581B073D5900BB0089 /* TableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TableViewController.m; sourceTree = "<group>"; };
+		8CFB7D5A1B073EA300BB0089 /* ViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
+		8CFB7D5B1B073EA300BB0089 /* ViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
+		8CFB7D921B08B60300BB0089 /* STPScrollViewPinchGestureRecognizer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = STPScrollViewPinchGestureRecognizer.h; sourceTree = "<group>"; };
+		8CFB7D931B08B60300BB0089 /* STPScrollViewPinchGestureRecognizer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = STPScrollViewPinchGestureRecognizer.m; sourceTree = "<group>"; };
 		F74ABFB6705069E3A2641567 /* libPods.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPods.a; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -113,12 +119,16 @@
 			children = (
 				8C6240CA1AB90355004C51BB /* AppDelegate.h */,
 				8C6240CB1AB90355004C51BB /* AppDelegate.m */,
-				8C6240CD1AB90355004C51BB /* ViewController.h */,
-				8C6240CE1AB90355004C51BB /* ViewController.m */,
+				8CFB7D571B073D5900BB0089 /* TableViewController.h */,
+				8CFB7D581B073D5900BB0089 /* TableViewController.m */,
+				8CFB7D5A1B073EA300BB0089 /* ViewController.h */,
+				8CFB7D5B1B073EA300BB0089 /* ViewController.m */,
 				8C9618A91AEC9FA900BD425F /* STPScrollView.h */,
 				8C9618AA1AEC9FA900BD425F /* STPScrollView.m */,
 				8C9618AC1AECA01200BD425F /* STPScrollViewPanGestureRecognizer.h */,
 				8C9618AD1AECA01200BD425F /* STPScrollViewPanGestureRecognizer.m */,
+				8CFB7D921B08B60300BB0089 /* STPScrollViewPinchGestureRecognizer.h */,
+				8CFB7D931B08B60300BB0089 /* STPScrollViewPinchGestureRecognizer.m */,
 				8C6240D01AB90355004C51BB /* Main.storyboard */,
 				8C6240D31AB90355004C51BB /* Images.xcassets */,
 				8C6240D51AB90355004C51BB /* LaunchScreen.xib */,
@@ -288,8 +298,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8CFB7D5C1B073EA300BB0089 /* ViewController.m in Sources */,
+				8CFB7D941B08B60300BB0089 /* STPScrollViewPinchGestureRecognizer.m in Sources */,
 				8C9618AE1AECA01200BD425F /* STPScrollViewPanGestureRecognizer.m in Sources */,
-				8C6240CF1AB90355004C51BB /* ViewController.m in Sources */,
+				8CFB7D591B073D5900BB0089 /* TableViewController.m in Sources */,
 				8C6240CC1AB90355004C51BB /* AppDelegate.m in Sources */,
 				8C6240C91AB90355004C51BB /* main.m in Sources */,
 				8C9618AB1AEC9FA900BD425F /* STPScrollView.m in Sources */,

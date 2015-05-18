@@ -27,11 +27,15 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
 {
     CGPoint _initialTouchPoint;
     CGFloat _initialZoomScale;
+    CGPoint _initialZoomViewPosition;
+    CGPoint _previousZoomViewOrigin;
+    CGPoint _previousPosition;
     CGAffineTransform _initialTransform;
     BOOL _animating;
     BOOL _deceleratingX;
     BOOL _deceleratingY;
     BOOL _directionalLock;
+    NSTimeInterval _lastTouchTime;
 
 }
 
@@ -93,11 +97,13 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
     _directionalLock = NO;
     _direction = STPScrollViewScrollDirectionEvery;
     
+    self.clipsToBounds = YES;
+    
     _panGestureRecognizer = [[STPScrollViewPanGestureRecognizer alloc] initWithTarget:self action:@selector(panGesture:)];
     _panGestureRecognizer.delegate = self;
     [self addGestureRecognizer:_panGestureRecognizer];
     
-    _pinchGestureRecognizer = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(pinchGesture:)];
+    _pinchGestureRecognizer = [[STPScrollViewPinchGestureRecognizer alloc] initWithTarget:self action:@selector(pinchGesture:)];
     _pinchGestureRecognizer.delegate = self;
     [self addGestureRecognizer:_pinchGestureRecognizer];
     
@@ -134,7 +140,7 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
     CGPoint location = [recognizer locationInView:self];
     CGPoint translation = [recognizer translationInView:self];
     CGPoint velocity = [recognizer velocityInView:self];
-    
+
     switch (recognizer.state) {
         case UIGestureRecognizerStateBegan:
         {
@@ -166,8 +172,6 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
                 }
             }
             
-            
-            
         }
             break;
         case UIGestureRecognizerStateChanged:
@@ -193,13 +197,36 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
                 }
             }
             
+            if (!self.alwaysBounceHorizontal) {
+                if (self.contentSize.width <= self.bounds.size.width) {
+                    translationX = 0;
+                }
+            }
+            
+            if (!self.alwaysBounceVertical) {
+                if (self.contentSize.height <= self.bounds.size.height) {
+                    translationY = 0;
+                }
+            }
+            
+            
             // contentSizeを超えたときの抵抗
-            if (self.contentOffset.x < self.contentInset.left || availableOffsetX < self.contentOffset.x) {
+            if (self.contentOffset.x <= self.contentInset.left || availableOffsetX <= self.contentOffset.x) {
                 translationX = translationX / RESISTANCE_INTERACTIVE;
             }
             
-            if (self.contentOffset.y < self.contentInset.top || availableOffsetY < self.contentOffset.y) {
+            if (self.contentOffset.y <= self.contentInset.top || availableOffsetY <= self.contentOffset.y) {
                 translationY = translationY / RESISTANCE_INTERACTIVE;
+            }
+            
+            if (!self.bounces) {
+                if (self.contentOffset.x <= self.contentInset.left || availableOffsetX <= self.contentOffset.x) {
+                    translationX = 0;
+                }
+                
+                if (self.contentOffset.y <= self.contentInset.top || availableOffsetY <= self.contentOffset.y) {
+                    translationY = 0;
+                }
             }
             
             self.contentOffset = CGPointMake(self.contentOffset.x - translationX, self.contentOffset.y - translationY);
@@ -216,6 +243,7 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
             _dragging = NO;
             _decelerating = YES;
             
+
             CGFloat velocityX = velocity.x;
             CGFloat velocityY = velocity.y;
             
@@ -224,6 +252,18 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
                     velocityX = 0;
                 }
                 if (_direction == STPScrollViewScrollDirectionHorizontal) {
+                    velocityY = 0;
+                }
+            }
+            
+            if (!self.alwaysBounceHorizontal) {
+                if (self.contentSize.width <= self.bounds.size.width) {
+                    velocityX = 0;
+                }
+            }
+            
+            if (!self.alwaysBounceVertical) {
+                if (self.contentSize.height <= self.bounds.size.height) {
                     velocityY = 0;
                 }
             }
@@ -336,7 +376,7 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
         offset.x = maxX - visibleRect.size.width;
     }
     
-    if (minY < CGRectGetMinY(visibleRect)) {
+    if (minY <= CGRectGetMinY(visibleRect)) {
         offset.y = minY;
     }
     
@@ -358,7 +398,7 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
         availableOffsetX = MAX(0, availableOffsetX);
         availableOffsetY = MAX(0, availableOffsetY);
         
-        if (contentOffset.x < self.contentInset.left || availableOffsetX < contentOffset.x) {
+        if (contentOffset.x <= self.contentInset.left || availableOffsetX <= contentOffset.x) {
             
             POPSpringAnimation *animation = [self pop_animationForKey:@"stp.scrollView.animation.bounce.x"];
             POPDecayAnimation *decayAnimation = [self pop_animationForKey:@"stp.scrollView.animation.decay.x"];
@@ -386,11 +426,11 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
                     bouncsAnimation.velocity = decayAnimation.velocity;
                     bouncsAnimation.delegate = self;
                     
-                    if (contentOffset.x < self.contentInset.left) {
+                    if (contentOffset.x <= self.contentInset.left) {
                         bouncsAnimation.toValue = @(-self.contentInset.left);
                     }
                     
-                    if (availableOffsetX < contentOffset.x) {
+                    if (availableOffsetX <= contentOffset.x) {
                         bouncsAnimation.toValue = @(availableOffsetX);
                     }
                     
@@ -400,7 +440,7 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
             }
         }
         
-        if (contentOffset.y < self.contentInset.top || availableOffsetY < contentOffset.y) {
+        if (contentOffset.y <= self.contentInset.top || availableOffsetY <= contentOffset.y) {
             POPSpringAnimation *animation = [self pop_animationForKey:@"stp.scrollView.animation.bounce.y"];
             POPDecayAnimation *decayAnimation = [self pop_animationForKey:@"stp.scrollView.animation.decay.y"];
             if (!animation) {
@@ -426,11 +466,11 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
                     bouncsAnimation.velocity = decayAnimation.velocity;
                     bouncsAnimation.delegate = self;
                     
-                    if (contentOffset.y < self.contentInset.top) {
+                    if (contentOffset.y <= self.contentInset.top) {
                         bouncsAnimation.toValue = @(-self.contentInset.top);
                     }
                     
-                    if (availableOffsetY < contentOffset.y) {
+                    if (availableOffsetY <= contentOffset.y) {
                         bouncsAnimation.toValue = @(availableOffsetY);
                     }
                     
@@ -440,9 +480,36 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
             }
         }
         
-        return [self setContentOffset:contentOffset];
-        
     } else {
+        
+        CGFloat availableOffsetX = self.contentSize.width - self.bounds.size.width + self.contentInset.right;
+        CGFloat availableOffsetY = self.contentSize.height - self.bounds.size.height + self.contentInset.bottom;
+        
+        availableOffsetX = MAX(0, availableOffsetX);
+        availableOffsetY = MAX(0, availableOffsetY);
+        
+        if (contentOffset.x <= self.contentInset.left || availableOffsetX <= contentOffset.x) {
+            [self pop_removeAnimationForKey:@"stp.scrollView.animation.decay.x"];
+            if (contentOffset.x <= self.contentInset.left) {
+                contentOffset.x = -self.contentInset.left;
+            }
+            
+            if (availableOffsetX <= contentOffset.x) {
+                contentOffset.x = availableOffsetX;
+            }
+        }
+        
+        if (contentOffset.y <= self.contentInset.top || availableOffsetY <= contentOffset.y) {
+            [self pop_removeAnimationForKey:@"stp.scrollView.animation.decay.y"];
+            if (contentOffset.y <= self.contentInset.top) {
+                contentOffset.y = -self.contentInset.top;
+            }
+            
+            if (availableOffsetY <= contentOffset.y) {
+                contentOffset.y = availableOffsetY;
+            }
+        }
+        
         [self setContentOffset:contentOffset];
     }
 
@@ -545,16 +612,25 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
         case UIGestureRecognizerStateBegan:
         {
             [self pop_removeAnimationForKey:@"stp.scrollView.animation.zoom"];
+            [self pop_removeAnimationForKey:@"stp.scrollView.animation.decay.x"];
+            [self pop_removeAnimationForKey:@"stp.scrollView.animation.decay.y"];
+            [self pop_removeAnimationForKey:@"stp.scrollView.animation.bounce.x"];
+            [self pop_removeAnimationForKey:@"stp.scrollView.animation.bounce.y"];
             
             _zooming = YES;
             _initialTouchPoint = location;
+            _previousPosition = location;
             _initialTransform = self.zoomView.layer.affineTransform;
+            _lastTouchTime = CFAbsoluteTimeGetCurrent();
             
             CGPoint locationInZoomView = [recognizer locationInView:self.zoomView];
             CGPoint anchorPoint = CGPointMake( locationInZoomView.x / self.zoomView.bounds.size.width, locationInZoomView.y / self.zoomView.bounds.size.height);
             
             [self _convertAnchorPoint:anchorPoint];
             [recognizer setScale:self.zoomScale];
+            
+            _initialZoomViewPosition = self.zoomView.layer.position;
+            _previousZoomViewOrigin = self.zoomView.layer.frame.origin;
             
             if ([self.delegate respondsToSelector:@selector(scrollViewWillBeginZooming:withView:)]) {
                 [self.delegate scrollViewWillBeginZooming:self withView:self.zoomView];
@@ -568,22 +644,48 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
             
             CGFloat targetScale = recognizer.scale;
             
-            if (targetScale < self.minimumZoomScale) {
-                targetScale = self.minimumZoomScale - (self.minimumZoomScale - targetScale) / RESISTANCE_INTERACTIVE;
-            }
-
-            if (self.maximumZoomScale < targetScale) {
-                targetScale = self.maximumZoomScale + (targetScale - self.maximumZoomScale) / RESISTANCE_INTERACTIVE;
+            
+            if (self.zoomBouncing) {
+                if (targetScale <= self.minimumZoomScale) {
+                    targetScale = self.minimumZoomScale - (self.minimumZoomScale - targetScale) / RESISTANCE_INTERACTIVE;
+                }
+                
+                if (self.maximumZoomScale <= targetScale) {
+                    targetScale = self.maximumZoomScale + (targetScale - self.maximumZoomScale) / RESISTANCE_INTERACTIVE;
+                }
+            } else {
+                if (targetScale <= self.minimumZoomScale) {
+                    targetScale = self.minimumZoomScale;
+                }
+                
+                if (self.maximumZoomScale <= targetScale) {
+                    targetScale = self.maximumZoomScale;
+                }
             }
             
             [self setZoomScale:targetScale];
-
+            
+            
+        
+            CGPoint translation = CGPointMake(location.x - _previousPosition.x, location.y - _previousPosition.y);
+            CGFloat translationX = translation.x;
+            CGFloat translationY = translation.y;
+            
+            CGPoint translationOrigin = CGPointMake(self.zoomView.layer.frame.origin.x - _previousZoomViewOrigin.x, self.zoomView.layer.frame.origin.y - _previousZoomViewOrigin.y);
+            
+            self.contentOffset = CGPointMake(self.contentOffset.x - translationX/RESISTANCE_INTERACTIVE - translationOrigin.x, self.contentOffset.y - translationY/RESISTANCE_INTERACTIVE  - translationOrigin.y);
+            _previousPosition = location;
+            _previousZoomViewOrigin = self.zoomView.layer.frame.origin;
+            _lastTouchTime = CFAbsoluteTimeGetCurrent();
+             
         }
             break;
         case UIGestureRecognizerStateEnded:
         {
             _zooming = NO;
+            
             CGFloat targetScale = recognizer.scale;
+            
             
             if (targetScale < self.minimumZoomScale) {
                 targetScale = self.minimumZoomScale - (self.minimumZoomScale - targetScale) / RESISTANCE_INTERACTIVE;
@@ -594,6 +696,91 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
             }
             
             [self setZoomScale:targetScale animated:self.bouncesZoom];
+            
+            
+        
+            NSTimeInterval currentTime = CFAbsoluteTimeGetCurrent();
+            CGPoint translation = CGPointMake(location.x - _previousPosition.x, location.y - _previousPosition.y);
+            
+            CGFloat velocityX = POPPixelsToPoints(translation.x) / (currentTime - _lastTouchTime);
+            CGFloat velocityY = POPPixelsToPoints(translation.y) / (currentTime - _lastTouchTime);
+            
+            
+            
+            //[self _rectifyZoomViewPosition];
+            
+            _animating = YES;
+            
+            // declerating X content offset
+            _deceleratingX = YES;
+            POPDecayAnimation *decayAnimationX = [POPDecayAnimation animation];
+            POPAnimatableProperty *propX = [POPAnimatableProperty propertyWithName:@"stp.scrollView.animation.decay.property.x" initializer:^(POPMutableAnimatableProperty *prop) {
+                prop.readBlock = ^(id obj, CGFloat values[]) {
+                    values[0] = [obj contentOffset].x;
+                };
+                prop.writeBlock = ^(id obj, const CGFloat values[]) {
+                    
+                    CGPoint contentOffset = [obj contentOffset];
+                    contentOffset.x = values[0];
+                    [obj setContentOffset:contentOffset bounces:self.bounces];
+                    
+                };
+                prop.threshold = 0.01;
+            }];
+            decayAnimationX.property = propX;
+            decayAnimationX.velocity = @(-velocityX);
+            decayAnimationX.delegate = self;
+            decayAnimationX.deceleration = self.decelerationRate;
+            decayAnimationX.completionBlock = ^(POPAnimation *anim, BOOL finished) {
+                
+                _deceleratingX = NO;
+                
+                // 2軸のアニメーションが終了してからProtocolを呼び出し
+                if (!_deceleratingX && !_deceleratingY) {
+                    if ([self.delegate respondsToSelector:@selector(scrollViewDidEndDecelerating:)]) {
+                        [self.delegate scrollViewDidEndDecelerating:self];
+                    }
+                }
+                
+            };
+            [self pop_addAnimation:decayAnimationX forKey:@"stp.scrollView.animation.decay.x"];
+            
+            
+            // declerating Y content offset
+            _deceleratingY = YES;
+            POPDecayAnimation *decayAnimationY = [POPDecayAnimation animation];
+            POPAnimatableProperty *propY = [POPAnimatableProperty propertyWithName:@"stp.scrollView.animation.decay.property.y" initializer:^(POPMutableAnimatableProperty *prop) {
+                prop.readBlock = ^(id obj, CGFloat values[]) {
+                    values[0] = [obj contentOffset].y;
+                };
+                prop.writeBlock = ^(id obj, const CGFloat values[]) {
+                    
+                    CGPoint contentOffset = [obj contentOffset];
+                    contentOffset.y = values[0];
+                    [obj setContentOffset:contentOffset bounces:self.bounces];
+                    
+                };
+                
+                prop.threshold = 0.01;
+            }];
+            decayAnimationY.property = propY;
+            decayAnimationY.velocity = @(-velocityY);
+            decayAnimationY.delegate = self;
+            decayAnimationY.deceleration = self.decelerationRate;
+            decayAnimationY.completionBlock = ^(POPAnimation *anim, BOOL finished) {
+                
+                _deceleratingY = NO;
+                
+                // 2軸のアニメーションが終了してからProtocolを呼び出し
+                if (!_deceleratingX && !_deceleratingY) {
+                    if ([self.delegate respondsToSelector:@selector(scrollViewDidEndDecelerating:)]) {
+                        [self.delegate scrollViewDidEndDecelerating:self];
+                    }
+                }
+                
+            };
+            [self pop_addAnimation:decayAnimationY forKey:@"stp.scrollView.animation.decay.y"];
+            
             
         }
             break;
@@ -610,6 +797,14 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
         return [self.delegate viewForZoomingInScrollView:self];
     }
     return nil;
+}
+
+- (void)setZoomViewPostion:(CGPoint)position withResistance:(CGFloat)resistance
+{
+    CGFloat deltaX = (position.x - self.zoomView.layer.position.x) * resistance;
+    CGFloat deltaY = (position.y - self.zoomView.layer.position.y) * resistance;
+    
+    self.zoomView.layer.position = (CGPoint){self.zoomView.layer.position.x + deltaX, self.zoomView.layer.position.y + deltaY};
 }
 
 - (void)setZoomScale:(CGFloat)zoomScale
@@ -638,7 +833,7 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
         
     }
     
-    self.contentSize = self.zoomView.frame.size;
+    self.contentSize = self.zoomView.layer.frame.size;
     if ([self.delegate respondsToSelector:@selector(scrollViewDidZoom:)]) {
         [self.delegate scrollViewDidZoom:self];
     }
@@ -681,8 +876,8 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
                 }
             }
         };
+        
         [self pop_addAnimation:zoomAnimation forKey:@"stp.scrollView.animation.zoom"];
-
         
     } else {
         [self setZoomScale:scale];
@@ -785,6 +980,30 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
     return offset;
 }
 
+- (void)_rectifyZoomViewPosition
+{
+    [self _convertAnchorPoint:CGPointMake(0, 0)];
+ 
+    
+     /*
+    NSLog(@"frame %@", NSStringFromCGPoint(self.zoomView.layer.frame.origin));
+    
+    if (0 <= self.zoomView.layer.frame.origin.x || 0<= self.zoomView.layer.frame.origin.y) {
+        
+    } else {
+        //[self _convertAnchorPoint:CGPointMake(0.5, 0.5)];
+    }
+    
+    */
+}
+
+static inline CGFloat POPPixelsToPoints(CGFloat pixels) {
+    static CGFloat scale = -1;
+    if (scale < 0) {
+        scale = [UIScreen mainScreen].scale;
+    }
+    return pixels / scale;
+}
 
 #pragma mark - <UIGestureRecognizerDelegate>
 
@@ -808,6 +1027,11 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
         _animating = NO;
         _directionalLock = NO;
     }
+}
+
+- (void)dealloc
+{
+    [self pop_removeAllAnimations];
 }
 
 @end

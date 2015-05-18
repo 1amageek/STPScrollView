@@ -1,135 +1,112 @@
 //
 //  ViewController.m
-//  UIScrollView
+//  STPScrollView
 //
-//  Created by Norikazu on 2015/03/18.
+//  Created by Norikazu on 2015/05/16.
 //  Copyright (c) 2015年 Stamp inc. All rights reserved.
 //
 
 #import "ViewController.h"
 
+@interface ViewController () <UIScrollViewDelegate, STPScrollViewDelegate>
 
-@implementation ScrollView
-/*
-- (void)addSubview:(UIView *)view
-{
-    NSLog(@"+view %@ bounds %@", view, NSStringFromCGRect(view.bounds));
-    [super addSubview:view];
-    NSLog(@"-view %@ %@", view, NSStringFromCGRect(view.bounds));
-}
-*/
-@end
-
-
-
-
-@interface ViewController () <STPScrollViewDelegate, UIScrollViewDelegate, UICollectionViewDataSource, UICollectionViewDelegate>
-
-@property (nonatomic) UICollectionView *contentView;
 @property (nonatomic) UITapGestureRecognizer *tapGestureRecognizer;
 
+@property (nonatomic) UIView *contentView2;
+@property (nonatomic) UIView *uiContentView2;
 
 @end
 
 @implementation ViewController
 
+- (instancetype)init
+{
+    self = [super init];
+    
+    if (self) {
+        
+    }
+    
+    return self;
+}
+
 - (void)viewDidLoad {
     [super viewDidLoad];
+    NSLog(@"viewDidLoad");
+    self.automaticallyAdjustsScrollViewInsets = NO;
     
+    self.uiScrollView = [[UIScrollView alloc] initWithFrame:CGRectZero];
+    self.scrollView = [[STPScrollView alloc] initWithFrame:CGRectZero];
     
-    CGRect screenRect = [UIScreen mainScreen].bounds;
-    _scrollView = [[STPScrollView alloc] initWithFrame:screenRect];
-    _scrollView.delegate = self;
-    //_scrollView.contentInset = UIEdgeInsetsMake(10, 10, 50, 50);
-    _scrollView.minimumZoomScale = 0.4;
-    _scrollView.maximumZoomScale = 40;
-    _scrollView.bouncesZoom = YES;
-    _scrollView.directionalLockEnabled = YES;
-    //_scrollView.alwaysBounceVertical = NO;
+    self.uiContentView = [[UIView alloc] initWithFrame:CGRectZero];
+    self.contentView = [[UIView alloc] initWithFrame:CGRectZero];
     
-    //_scrollView.decelerationRate = UIScrollViewDecelerationRateFast;
-    //_scrollView.bounces = YES;
-    //_scrollView.contentOffset = CGPointMake(100, 0);
-    //_scrollView.directionalLockEnabled = YES;
+    self.uiContentView2 = [[UIView alloc] initWithFrame:CGRectZero];
+    self.contentView2 = [[UIView alloc] initWithFrame:CGRectZero];
     
-    CGSize contentSize = [UIScreen mainScreen].bounds.size;
-    contentSize.width = contentSize.width * 4;
-    contentSize.height = contentSize.height * 2;
-    _scrollView.contentSize = contentSize;
-    //contentSize.height = contentSize.height * 0.8;
-    UICollectionViewFlowLayout *layout = [UICollectionViewFlowLayout new];
+    [self.view addSubview:self.uiScrollView];
+    [self.view addSubview:self.scrollView];
     
-    layout.itemSize = CGSizeMake([UIScreen mainScreen].bounds.size.width/7, [UIScreen mainScreen].bounds.size.height/10);
-    layout.scrollDirection = UICollectionViewScrollDirectionHorizontal;
+    [self.uiScrollView addSubview:self.uiContentView];
+    [self.scrollView addSubview:self.contentView];
     
-    _contentView = [[UICollectionView alloc] initWithFrame:(CGRect){CGPointZero, contentSize} collectionViewLayout:layout];
-    _contentView.delegate = self;
-    _contentView.dataSource = self;
-    _contentView.userInteractionEnabled = NO;
-    [_contentView registerClass:[UICollectionViewCell class] forCellWithReuseIdentifier:@"cell"];
- 
-    [self.view addSubview:_scrollView];
-    [self.scrollView addSubview:_contentView];
+    [self.uiScrollView addSubview:self.uiContentView2];
+    [self.scrollView addSubview:self.contentView2];
     
-    UIView *view = [[UIView alloc] initWithFrame:CGRectMake(100, -100, [UIScreen mainScreen].bounds.size.width / 2, [UIScreen mainScreen].bounds.size.height * 2)];
-    view.backgroundColor = [UIColor redColor];
+    self.uiContentView.backgroundColor = [UIColor colorWithRed:0.2 green:1 blue:0.65 alpha:1];
+    self.contentView.backgroundColor = [UIColor colorWithRed:0.5 green:1 blue:0.85 alpha:1];
     
-    [self.scrollView addSubview:view];
+    self.uiContentView2.backgroundColor = [UIColor colorWithRed:0.3 green:0.45 blue:0.85 alpha:1];
+    self.contentView2.backgroundColor = [UIColor colorWithRed:0.3 green:0.45 blue:0.85 alpha:1];
+    
+    self.uiScrollView.backgroundColor = [UIColor colorWithRed:0.95 green:0.95 blue:0.95 alpha:1];
+    self.scrollView.backgroundColor = [UIColor whiteColor];
+    
+    CGRect rect = [UIScreen mainScreen].bounds;
+    self.uiScrollView.frame = CGRectMake(0, 0, rect.size.width, rect.size.height/2);
+    self.scrollView.frame = CGRectMake(0, rect.size.height/2, rect.size.width, rect.size.height/2);
+    
+    CGRect contentRect = CGRectMake(rect.size.width/2 - 100, rect.size.height/4 - 100, 200, 200);
+    self.contentView.frame = contentRect;
+    self.uiContentView.frame = contentRect;
+    
+    CGRect content2Rect = CGRectMake(rect.size.width/2 - 25, rect.size.height/4 - 25, 50, 50);
+    self.contentView2.frame = content2Rect;
+    self.uiContentView2.frame = content2Rect;
+    
     
     self.tapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapped:)];
-    [self.scrollView addGestureRecognizer:_tapGestureRecognizer];
+    [self.view addGestureRecognizer:self.tapGestureRecognizer];
+    
+    
+    self.uiScrollView.delegate = self;
+    self.scrollView.delegate = self;
+    
+}
+
+- (UIView *)viewForZoomingInScrollView:(UIView *)scrollView
+{
+    if (scrollView == self.scrollView) {
+        return self.contentView;
+    }
+    
+    if (scrollView == self.uiScrollView) {
+        return self.uiContentView;
+    }
+    return nil;
+}
+
+
+- (void)viewWillLayoutSubviews
+{
     
 }
 
 - (void)tapped:(UITapGestureRecognizer *)recognizer
 {
-    //[self.scrollView setZoomScale:0.5 animated:YES];
-    
-    NSLog(@"_contentView frame%@", NSStringFromCGRect(_contentView.frame));
-    NSLog(@"_contentView bounds%@", NSStringFromCGRect(_contentView.bounds));
-    
-    NSLog(@"_scrollVeiw frame %@", NSStringFromCGRect(_scrollView.frame));
-    NSLog(@"_scrollView bounds %@", NSStringFromCGRect(_scrollView.bounds));
-    
-    //CGRect rect = [self zoomRectForScrollView:self.scrollView withScale:1.1 withCenter:[recognizer locationInView:self.contentView]];
-    //[self.scrollView zoomToRect:rect animated:YES];
-    
-    CGRect rect = [UIScreen mainScreen].bounds;
-    
-    rect.origin.x = 100;
-    rect.origin.y = -100;
-    rect.size.width = rect.size.width / 2;
-    rect.size.height = rect.size.height * 2;
-    //[self.scrollView setContentOffset:CGPointMake(20, 20)];
-    NSLog(@"sec %@", self.scrollView);
-    
-    [self.scrollView scrollRectToVisible:rect animated:NO];
-    
-    
-}
-
-- (CGRect)zoomRectForScrollView:(STPScrollView *)scrollView withScale:(float)scale withCenter:(CGPoint)center {
-    
-    CGRect zoomRect;
-    
-    // The zoom rect is in the content view's coordinates.
-    // At a zoom scale of 1.0, it would be the size of the
-    // imageScrollView's bounds.
-    // As the zoom scale decreases, so more content is visible,
-    // the size of the rect grows.
-    zoomRect.size.height = scrollView.frame.size.height / scale;
-    zoomRect.size.width  = scrollView.frame.size.width  / scale;
-    
-    // choose an origin so as to get the right center.
-    zoomRect.origin.x = center.x - (zoomRect.size.width  / 2.0);
-    zoomRect.origin.y = center.y - (zoomRect.size.height / 2.0);
-    
-    return zoomRect;
-}
-
-- (UIView *)viewForZoomingInScrollView:(UIScrollView *)scrollView
-{
-    return _contentView;
+    [self dismissViewControllerAnimated:YES completion:^{
+        
+    }];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -137,28 +114,14 @@
     // Dispose of any resources that can be recreated.
 }
 
-- (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section
-{
-    return 200;
-}
+/*
+#pragma mark - Navigation
 
-- (void)collectionView:(UICollectionView *)collectionView didEndDisplayingCell:(UICollectionViewCell *)cell forItemAtIndexPath:(NSIndexPath *)indexPath
-{
-    [cell.contentView.subviews enumerateObjectsUsingBlock:^(UIView *view, NSUInteger idx, BOOL *stop) {
-        [view removeFromSuperview];
-    }];
+// In a storyboard-based application, you will often want to do a little preparation before navigation
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    // Get the new view controller using [segue destinationViewController].
+    // Pass the selected object to the new view controller.
 }
-
-- (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath
-{
-    UICollectionViewCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:@"cell" forIndexPath:indexPath];
-    
-    UILabel *label = [[UILabel alloc] initWithFrame:cell.bounds];
-    label.text = [NSString stringWithFormat:@"%ld", (long)indexPath.item];
-    cell.backgroundColor = [UIColor lightGrayColor];
-    [cell.contentView addSubview:label];
-    
-    return cell;
-}
+*/
 
 @end

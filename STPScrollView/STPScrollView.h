@@ -8,6 +8,7 @@
 
 #import <UIKit/UIKit.h>
 #import "STPScrollViewPanGestureRecognizer.h"
+#import "STPScrollViewPinchGestureRecognizer.h"
 
 
 UIKIT_EXTERN const CGFloat STPScrollViewDecelerationRateNormal;
@@ -19,7 +20,7 @@ UIKIT_EXTERN const CGFloat STPScrollViewDecelerationRateFast;
 @property (nonatomic)         CGPoint                      contentOffset;                  // default CGPointZero
 @property (nonatomic)         CGSize                       contentSize;                    // default CGSizeZero
 @property (nonatomic)         UIEdgeInsets                 contentInset;                   // default UIEdgeInsetsZero. add additional scroll area around content
-@property (nonatomic,assign) id<STPScrollViewDelegate>      delegate;                       // default nil. weak reference
+@property (nonatomic,assign) id<STPScrollViewDelegate>     delegate;                       // default nil. weak reference
 @property (nonatomic,getter=isDirectionalLockEnabled) BOOL directionalLockEnabled;         // default NO. if YES, try to lock vertical or horizontal scrolling while dragging
 @property (nonatomic)         BOOL                         bounces;                        // default YES. if YES, bounces past edge of content and back again
 @property (nonatomic)         BOOL                         alwaysBounceVertical;           // default NO. if YES and bounces is YES, even if content is smaller than bounds, allow drag vertically
@@ -51,7 +52,7 @@ UIKIT_EXTERN const CGFloat STPScrollViewDecelerationRateFast;
 
 
 @property (nonatomic) STPScrollViewPanGestureRecognizer *panGestureRecognizer;
-@property (nonatomic) UIPinchGestureRecognizer *pinchGestureRecognizer;
+@property (nonatomic) STPScrollViewPinchGestureRecognizer *pinchGestureRecognizer;
 
 @end
 
