@@ -81,6 +81,7 @@
     
     self.uiScrollView.delegate = self;
     self.scrollView.delegate = self;
+
     
 }
 
