@@ -28,6 +28,12 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
     CGPoint _initialTouchPoint;
     CGFloat _initialZoomScale;
     CGPoint _initialZoomViewPosition;
+    
+    // Pinch Gestureでzoomによるoffset設定に使用
+    CGPoint _initialScalePosition;
+    CGPoint _previousScalePosition;
+    
+    
     CGPoint _previousZoomViewOrigin;
     CGPoint _previousPosition;
     CGAffineTransform _initialTransform;
@@ -623,15 +629,10 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
             _initialTransform = self.zoomView.layer.affineTransform;
             _lastTouchTime = CFAbsoluteTimeGetCurrent();
             
-            CGPoint locationInZoomView = [recognizer locationInView:self.zoomView];
-            CGPoint anchorPoint = CGPointMake( locationInZoomView.x / self.zoomView.bounds.size.width, locationInZoomView.y / self.zoomView.bounds.size.height);
-            
-            [self _convertAnchorPoint:anchorPoint];
             [recognizer setScale:self.zoomScale];
-            
-            _initialZoomViewPosition = self.zoomView.layer.position;
-            _previousZoomViewOrigin = self.zoomView.layer.frame.origin;
-            
+            _initialScalePosition = CGPointMake(_initialTouchPoint.x * self.zoomScale, _initialTouchPoint.y * self.zoomScale);
+            _previousScalePosition = _initialScalePosition;
+
             if ([self.delegate respondsToSelector:@selector(scrollViewWillBeginZooming:withView:)]) {
                 [self.delegate scrollViewWillBeginZooming:self withView:self.zoomView];
             }
@@ -644,8 +645,7 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
             
             CGFloat targetScale = recognizer.scale;
             
-            
-            if (self.zoomBouncing) {
+            if (self.bouncesZoom) {
                 if (targetScale <= self.minimumZoomScale) {
                     targetScale = self.minimumZoomScale - (self.minimumZoomScale - targetScale) / RESISTANCE_INTERACTIVE;
                 }
@@ -665,17 +665,17 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
             
             [self setZoomScale:targetScale];
             
-            
-        
             CGPoint translation = CGPointMake(location.x - _previousPosition.x, location.y - _previousPosition.y);
             CGFloat translationX = translation.x;
             CGFloat translationY = translation.y;
+            CGPoint scalePosition = CGPointMake(_initialTouchPoint.x * self.zoomScale, _initialTouchPoint.y * self.zoomScale);
+            CGPoint scaleTranslation = CGPointMake(_previousScalePosition.x - scalePosition.x, _previousScalePosition.y - scalePosition.y);
             
-            CGPoint translationOrigin = CGPointMake(self.zoomView.layer.frame.origin.x - _previousZoomViewOrigin.x, self.zoomView.layer.frame.origin.y - _previousZoomViewOrigin.y);
+            self.contentOffset = CGPointMake(self.contentOffset.x - translationX/RESISTANCE_INTERACTIVE - scaleTranslation.x, self.contentOffset.y - translationY/RESISTANCE_INTERACTIVE  - scaleTranslation.y);
             
-            self.contentOffset = CGPointMake(self.contentOffset.x - translationX/RESISTANCE_INTERACTIVE - translationOrigin.x, self.contentOffset.y - translationY/RESISTANCE_INTERACTIVE  - translationOrigin.y);
+            _previousScalePosition = scalePosition;
             _previousPosition = location;
-            _previousZoomViewOrigin = self.zoomView.layer.frame.origin;
+            
             _lastTouchTime = CFAbsoluteTimeGetCurrent();
              
         }
@@ -704,10 +704,6 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
             
             CGFloat velocityX = POPPixelsToPoints(translation.x) / (currentTime - _lastTouchTime);
             CGFloat velocityY = POPPixelsToPoints(translation.y) / (currentTime - _lastTouchTime);
-            
-            
-            
-            //[self _rectifyZoomViewPosition];
             
             _animating = YES;
             
@@ -813,8 +809,9 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
         return;
     }
     
+    [self _convertAnchorPoint:CGPointMake(0, 0)];
+    
     if (self.bouncesZoom) {
-        
         _zoomScale = zoomScale;
         self.zoomView.layer.affineTransform = CGAffineTransformMakeScale(zoomScale, zoomScale);
         
@@ -832,7 +829,7 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
         self.zoomView.layer.affineTransform = CGAffineTransformMakeScale(zoomScale, zoomScale);
         
     }
-    
+    [self _convertAnchorPoint:CGPointMake(0.5, 0.5)];
     self.contentSize = self.zoomView.layer.frame.size;
     if ([self.delegate respondsToSelector:@selector(scrollViewDidZoom:)]) {
         [self.delegate scrollViewDidZoom:self];

@@ -196,7 +196,7 @@
                 viewController.uiScrollView.maximumZoomScale = 1;
                 viewController.scrollView.minimumZoomScale = .5f;
                 viewController.scrollView.maximumZoomScale = 1;
-                contentRect = CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width * 2, [UIScreen mainScreen].bounds.size.height * 2);
+                contentRect = CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.height * 2);
             }
             
             if (indexPath.row == 2) {
