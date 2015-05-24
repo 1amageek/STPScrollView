@@ -40,6 +40,7 @@
                            @"zoom min = 1 max = 1",
                            @"zoom min = 0.5 max = 1",
                            @"zoom min = 0.5 max = 2",
+                           @"set = 0.8 zoom min =  0.5 max = 1"
                            ]
                        ];
 
@@ -204,6 +205,16 @@
                 viewController.uiScrollView.maximumZoomScale = 2;
                 viewController.scrollView.minimumZoomScale = 0.5;
                 viewController.scrollView.maximumZoomScale = 2;
+                contentRect = CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.height);
+            }
+            
+            if (indexPath.row == 3) {
+                viewController.uiScrollView.minimumZoomScale = 0.5;
+                viewController.uiScrollView.maximumZoomScale = 1;
+                viewController.scrollView.minimumZoomScale = 0.5;
+                viewController.scrollView.maximumZoomScale = 1;
+                //[viewController.scrollView setZoomScale:0.8];
+                //[viewController.uiScrollView setZoomScale:0.8];
                 contentRect = CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.height);
             }
         }

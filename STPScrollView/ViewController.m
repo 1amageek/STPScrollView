@@ -97,6 +97,10 @@
     return nil;
 }
 
+- (void)scrollViewDidZoom:(STPScrollView *)scrollView
+{
+    NSLog(@"scroll %f", scrollView.zoomScale);
+}
 
 - (void)viewWillLayoutSubviews
 {
