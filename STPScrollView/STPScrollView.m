@@ -111,7 +111,6 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
     _pinchGestureRecognizer.delegate = self;
     [self addGestureRecognizer:_pinchGestureRecognizer];
     
-    
 }
 
 - (void)setContentInset:(UIEdgeInsets)contentInset
