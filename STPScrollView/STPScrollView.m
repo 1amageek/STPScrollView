@@ -103,8 +103,6 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
     _directionalLock = NO;
     _direction = STPScrollViewScrollDirectionEvery;
     
-    self.clipsToBounds = YES;
-    
     _panGestureRecognizer = [[STPScrollViewPanGestureRecognizer alloc] initWithTarget:self action:@selector(panGesture:)];
     _panGestureRecognizer.delegate = self;
     [self addGestureRecognizer:_panGestureRecognizer];
@@ -688,16 +686,15 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
             
             
             if (targetScale < self.minimumZoomScale) {
-                targetScale = self.minimumZoomScale - (self.minimumZoomScale - targetScale) / RESISTANCE_INTERACTIVE;
+                targetScale = self.minimumZoomScale;
             }
             
             if (self.maximumZoomScale < targetScale) {
-                targetScale = self.maximumZoomScale + (targetScale - self.maximumZoomScale) / RESISTANCE_INTERACTIVE;
+                targetScale = self.maximumZoomScale;
             }
             
+            self.contentSize = CGSizeMake(targetScale * self.zoomView.layer.bounds.size.width, targetScale * self.zoomView.layer.bounds.size.height);
             [self setZoomScale:targetScale animated:self.bouncesZoom];
-            
-            
         
             NSTimeInterval currentTime = CFAbsoluteTimeGetCurrent();
             CGPoint translation = CGPointMake(location.x - _previousPosition.x, location.y - _previousPosition.y);
@@ -803,6 +800,36 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
     self.zoomView.layer.position = (CGPoint){self.zoomView.layer.position.x + deltaX, self.zoomView.layer.position.y + deltaY};
 }
 
+- (void)_setZoomScale:(CGFloat)zoomScale
+{
+    if (zoomScale == _zoomScale) {
+        return;
+    }
+    
+    [self _convertAnchorPoint:CGPointMake(0, 0)];
+    
+    if (self.bouncesZoom) {
+        _zoomScale = zoomScale;
+        self.zoomView.layer.affineTransform = CGAffineTransformMakeScale(zoomScale, zoomScale);
+        
+    } else {
+        
+        if (zoomScale < self.minimumZoomScale) {
+            zoomScale = self.minimumZoomScale;
+        }
+        
+        if (self.maximumZoomScale < zoomScale) {
+            zoomScale = self.maximumZoomScale;
+        }
+        
+        _zoomScale = zoomScale;
+        self.zoomView.layer.affineTransform = CGAffineTransformMakeScale(zoomScale, zoomScale);
+        
+    }
+    [self _convertAnchorPoint:CGPointMake(0.5, 0.5)];
+    
+}
+
 - (void)setZoomScale:(CGFloat)zoomScale
 {
     if (zoomScale == _zoomScale) {
@@ -858,7 +885,7 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
                 values[0] = [obj zoomScale];
             };
             prop.writeBlock = ^(id obj, const CGFloat values[]) {
-                [obj setZoomScale:values[0]];
+                [obj _setZoomScale:values[0]];
             };
             prop.threshold = 0.01;
         }];
@@ -877,7 +904,7 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
         [self pop_addAnimation:zoomAnimation forKey:@"stp.scrollView.animation.zoom"];
         
     } else {
-        [self setZoomScale:scale];
+        [self _setZoomScale:scale];
     }
     
 }
@@ -975,23 +1002,6 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
     }
     
     return offset;
-}
-
-- (void)_rectifyZoomViewPosition
-{
-    [self _convertAnchorPoint:CGPointMake(0, 0)];
- 
-    
-     /*
-    NSLog(@"frame %@", NSStringFromCGPoint(self.zoomView.layer.frame.origin));
-    
-    if (0 <= self.zoomView.layer.frame.origin.x || 0<= self.zoomView.layer.frame.origin.y) {
-        
-    } else {
-        //[self _convertAnchorPoint:CGPointMake(0.5, 0.5)];
-    }
-    
-    */
 }
 
 static inline CGFloat POPPixelsToPoints(CGFloat pixels) {
