@@ -44,7 +44,16 @@
                            ],
                        @[
                            @"inset (10, 10, 20, 20)",
-                           @"inset (200, 200, 20, 20)"
+                           @"inset (200, 200, 20, 20)",
+                           @"inset (10, 10, 20, 20) contentSizeがview.boundsと同じ",
+                           @"inset (200, 200, 20, 20) Rectの設定を変更",
+                           @"inset (10, 10, 20, 20) contentSizeがview.boundsと同じ Rectの設定を変更"
+                           ],
+                       @[
+                           @"animation contentSizeがview.boundsより小さい",
+                           @"animation conntentSizeがview.bounddsより大きい",
+                           @"animation 逆方向　contentSizeがview.boundsより小さい",
+                           @"animation 逆方向　conntentSizeがview.bounddsより大きい"
                            ]
                        
                        ];
@@ -246,20 +255,82 @@
         
         if (indexPath.section == 2) {
             if (indexPath.row == 0) {
+                contentRect = CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width/2, [UIScreen mainScreen].bounds.size.height / 2);
+                
+                [self setRect:contentRect viewController:viewController];
                 viewController.scrollView.contentInset = UIEdgeInsetsMake(10, 10, 20, 20);
                 viewController.uiScrollView.contentInset = UIEdgeInsetsMake(10, 10, 20, 20);
+                
+            }
+            if (indexPath.row == 1) {
                 contentRect = CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.height / 2);
                 
                 
                 [self setRect:contentRect viewController:viewController];
+                viewController.scrollView.contentInset = UIEdgeInsetsMake(200, 200, 20, 20);
+                viewController.uiScrollView.contentInset = UIEdgeInsetsMake(200, 200, 20, 20);
+                
             }
-            if (indexPath.row == 1) {
+            if (indexPath.row == 2) {
+                contentRect = CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.height / 2);
+                [self setRect:contentRect viewController:viewController];
+                viewController.scrollView.contentInset = UIEdgeInsetsMake(10, 10, 20, 20);
+                viewController.uiScrollView.contentInset = UIEdgeInsetsMake(10, 10, 20, 20);
+                
+            }
+            if (indexPath.row == 3) {
                 viewController.scrollView.contentInset = UIEdgeInsetsMake(200, 200, 20, 20);
                 viewController.uiScrollView.contentInset = UIEdgeInsetsMake(200, 200, 20, 20);
                 contentRect = CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.height / 2);
                 
                 
                 [self setRect:contentRect viewController:viewController];
+                
+                
+            }
+            if (indexPath.row == 4) {
+                viewController.scrollView.contentInset = UIEdgeInsetsMake(10, 10, 20, 20);
+                viewController.uiScrollView.contentInset = UIEdgeInsetsMake(10, 10, 20, 20);
+                contentRect = CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.height / 2);
+                [self setRect:contentRect viewController:viewController];
+                
+                
+            }
+            
+        }
+        
+        if (indexPath.section == 3) {
+            if (indexPath.row == 0) {
+                contentRect = CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width / 2, [UIScreen mainScreen].bounds.size.height / 2);
+                [self setRect:contentRect viewController:viewController];
+                
+                [viewController.uiScrollView setContentOffset:CGPointMake(100, 0) animated:YES];
+                [viewController.scrollView setContentOffset:CGPointMake(100, 0) animated:YES];
+                
+            }
+            if (indexPath.row == 1) {
+                contentRect = CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width * 2, [UIScreen mainScreen].bounds.size.height / 2);
+                [self setRect:contentRect viewController:viewController];
+                
+                [viewController.uiScrollView setContentOffset:CGPointMake(100, 0) animated:YES];
+                [viewController.scrollView setContentOffset:CGPointMake(100, 0) animated:YES];
+                
+            }
+            if (indexPath.row == 2) {
+                contentRect = CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width / 2, [UIScreen mainScreen].bounds.size.height / 2);
+                [self setRect:contentRect viewController:viewController];
+                
+                [viewController.uiScrollView setContentOffset:CGPointMake(-100, 0) animated:YES];
+                [viewController.scrollView setContentOffset:CGPointMake(-100, 0) animated:YES];
+                
+            }
+            if (indexPath.row == 3) {
+                contentRect = CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width * 2, [UIScreen mainScreen].bounds.size.height / 2);
+                [self setRect:contentRect viewController:viewController];
+                
+                [viewController.uiScrollView setContentOffset:CGPointMake(-100, 0) animated:YES];
+                [viewController.scrollView setContentOffset:CGPointMake(-100, 0) animated:YES];
+                
             }
         }
         

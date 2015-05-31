@@ -119,17 +119,8 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
 - (void)setContentInset:(UIEdgeInsets)contentInset
 {
     _contentInset = contentInset;
-    
-    CGRect rect = self.bounds;
-    rect.origin.x    -= contentInset.left;
-    rect.origin.y    -= contentInset.top;
-    
-    //rect.size.width  -= (contentInset.left + contentInset.right);
-    //rect.size.height -= (contentInset.top  + contentInset.bottom);
-    
-    [self setBounds:rect];
-    [self setContentOffset:CGPointMake(-contentInset.left, -contentInset.top)];
-    
+    [self setContentOffset:[self _limitOffset:self.contentOffset] animated:NO];
+
 }
 
 - (CGRect)availableRect
@@ -178,21 +169,17 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
 
 - (void)setContentOffset:(CGPoint)contentOffset
 {
-    
+    // TODO 小数点を丸めたい
     CGFloat deltaX = contentOffset.x - _contentOffset.x;
     CGFloat deltaY = contentOffset.y - _contentOffset.y;
     CGPoint deltaPoint = CGPointMake(deltaX, deltaY);
     _contentOffset = contentOffset;
     
-    [self.subviews enumerateObjectsUsingBlock:^(UIView *view, NSUInteger idx, BOOL *stop) {
-        
-        //NSLog(@"-position %@", NSStringFromCGPoint(view.layer.frame.origin));
-        
-        view.layer.position = CGPointMake(view.layer.position.x - deltaPoint.x, view.layer.position.y - deltaPoint.y);
-
-        //NSLog(@"+position %@", NSStringFromCGPoint(view.layer.frame.origin));
-        //view.layer.frame = (CGRect){CGPointMake(view.layer.frame.origin.x - deltaPoint.x, view.layer.frame.origin.y - deltaPoint.y), view.layer.frame.size};
-    }];
+    CGRect rect = self.bounds;
+    rect.origin.x += deltaPoint.x;
+    rect.origin.y += deltaPoint.y;
+    
+    [self setBounds:rect];
     
     if ([self.delegate respondsToSelector:@selector(scrollViewDidScroll:)]) {
         [self.delegate scrollViewDidScroll:self];
@@ -989,6 +976,20 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
     }
 }
 
+- (void)_convertAnchorPoint:(CGPoint)anchorPoint
+{
+    CGPoint _anchorPoint = self.zoomView.layer.anchorPoint;
+    CGFloat toPointX = self.zoomView.frame.size.width * (_anchorPoint.x - anchorPoint.x);
+    CGFloat toPointY = self.zoomView.frame.size.height * (_anchorPoint.y - anchorPoint.y);
+    
+    self.zoomView.layer.anchorPoint = anchorPoint;
+    
+    CGPoint position = self.zoomView.layer.position;
+    position.x = position.x - toPointX;
+    position.y = position.y - toPointY;
+    self.zoomView.layer.position = position;
+}
+
 - (BOOL)_overAvailableOffsetX:(CGPoint)contentOffset
 {
     CGFloat availableOffsetX = self.contentSize.width + self.contentInset.left - (self.bounds.size.width - self.contentInset.right);
@@ -1006,40 +1007,32 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
     return (contentOffset.y <= -self.contentInset.top || targetOffsetY <= contentOffset.y);
 }
 
-- (void)_convertAnchorPoint:(CGPoint)anchorPoint
+- (CGPoint)_limitOffset:(CGPoint)contentOffset
 {
-    CGPoint _anchorPoint = self.zoomView.layer.anchorPoint;
-    CGFloat toPointX = self.zoomView.frame.size.width * (_anchorPoint.x - anchorPoint.x);
-    CGFloat toPointY = self.zoomView.frame.size.height * (_anchorPoint.y - anchorPoint.y);
+    CGFloat availableOffsetX = self.contentSize.width + self.contentInset.left - (self.bounds.size.width - self.contentInset.right);
+    CGFloat availableOffsetY = self.contentSize.height + self.contentInset.top - (self.bounds.size.height - self.contentInset.bottom);
     
-    self.zoomView.layer.anchorPoint = anchorPoint;
+    availableOffsetX = MAX(0, availableOffsetX);
+    availableOffsetY = MAX(0, availableOffsetY);
     
-    CGPoint position = self.zoomView.layer.position;
-    position.x = position.x - toPointX;
-    position.y = position.y - toPointY;
-    self.zoomView.layer.position = position;
-}
-
-- (CGPoint)_limitOffset:(CGPoint)offset
-{
-    CGFloat maxX = self.contentSize.width - self.bounds.size.width;
-    CGFloat maxY = self.contentSize.height - self.bounds.size.height;
+    CGFloat targetOffsetX = -(self.contentInset.left - availableOffsetX);
+    CGFloat targetOffsetY = -(self.contentInset.top - availableOffsetY);
     
-    if (offset.x < 0) {
-        offset.x = 0;
+    if (contentOffset.x <= -self.contentInset.left) {
+        contentOffset.x = -self.contentInset.left;
     }
-    if (maxX < offset.x) {
-        offset.x = maxX;
+    if (targetOffsetX <= contentOffset.x) {
+        contentOffset.x = targetOffsetX;
     }
     
-    if (offset.y < 0) {
-        offset.y = 0;
+    if (contentOffset.y <= -self.contentInset.top) {
+        contentOffset.y = -self.contentInset.top;
     }
-    if (maxY < offset.y) {
-        offset.y = maxY;
+    if (targetOffsetY <= contentOffset.y) {
+        contentOffset.y = targetOffsetY;
     }
     
-    return offset;
+    return contentOffset;
 }
 
 static inline CGFloat POPPixelsToPoints(CGFloat pixels) {

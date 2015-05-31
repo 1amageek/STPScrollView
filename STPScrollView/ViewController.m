@@ -51,13 +51,13 @@
     
     [self.uiScrollView addSubview:self.uiContentView];
     [self.scrollView addSubview:self.contentView];
-    /*
+    
     [self.uiScrollView addSubview:self.uiContentView2];
     [self.scrollView addSubview:self.contentView2];
     
     [self.uiScrollView addSubview:self.uiContentView3];
     [self.scrollView addSubview:self.contentView3];
-    */
+    
     self.uiContentView.backgroundColor = [UIColor colorWithRed:0.2 green:1 blue:0.65 alpha:1];
     self.contentView.backgroundColor = [UIColor colorWithRed:0.5 green:1 blue:0.85 alpha:1];
     
@@ -106,6 +106,11 @@
         return self.uiContentView;
     }
     return nil;
+}
+
+- (void)scrollViewDidScroll:(UIView *)scrollView
+{
+    //NSLog(@"bounds %@", NSStringFromCGRect(scrollView.bounds));
 }
 
 - (void)scrollViewDidZoom:(STPScrollView *)scrollView
