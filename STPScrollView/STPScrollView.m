@@ -9,7 +9,8 @@
 #import "STPScrollView.h"
 #import <POP.h>
 
-#define RESISTANCE_INTERACTIVE 3
+#define RESISTANCE_INTERACTIVE 2.3
+#define BOUNCES_SPRINGSPEED 4
 
 
 typedef NS_ENUM(NSInteger, STPScrollViewScrollDirection)
@@ -42,7 +43,7 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
     BOOL _deceleratingY;
     BOOL _directionalLock;
     NSTimeInterval _lastTouchTime;
-
+    
 }
 
 @property (nonatomic) UIView *zoomView;
@@ -103,6 +104,8 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
     _directionalLock = NO;
     _direction = STPScrollViewScrollDirectionEvery;
     
+    self.clipsToBounds = YES;
+    
     _panGestureRecognizer = [[STPScrollViewPanGestureRecognizer alloc] initWithTarget:self action:@selector(panGesture:)];
     _panGestureRecognizer.delegate = self;
     [self addGestureRecognizer:_panGestureRecognizer];
@@ -123,241 +126,22 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
     
     //rect.size.width  -= (contentInset.left + contentInset.right);
     //rect.size.height -= (contentInset.top  + contentInset.bottom);
-
+    
     [self setBounds:rect];
     [self setContentOffset:CGPointMake(-contentInset.left, -contentInset.top)];
     
 }
 
+- (CGRect)availableRect
+{
+    return UIEdgeInsetsInsetRect(self.bounds, _contentInset);
+}
+
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    [self pop_removeAnimationForKey:@"stp.scrollView.animation.decay.x"];
-    [self pop_removeAnimationForKey:@"stp.scrollView.animation.decay.y"];
     [self pop_removeAnimationForKey:@"stp.scrollView.animation.bounce.x"];
     [self pop_removeAnimationForKey:@"stp.scrollView.animation.bounce.y"];
     [self pop_removeAnimationForKey:@"stp.scrollView.animation.offset"];
-}
-
-- (void)panGesture:(STPScrollViewPanGestureRecognizer *)recognizer
-{
-    CGPoint location = [recognizer locationInView:self];
-    CGPoint translation = [recognizer translationInView:self];
-    CGPoint velocity = [recognizer velocityInView:self];
-
-    switch (recognizer.state) {
-        case UIGestureRecognizerStateBegan:
-        {
-            _tracking = YES;
-            _dragging = NO;
-            _decelerating = NO;
-            
-            _initialTouchPoint = location;
-            
-            [self pop_removeAnimationForKey:@"stp.scrollView.animation.decay.x"];
-            [self pop_removeAnimationForKey:@"stp.scrollView.animation.decay.y"];
-            
-            if ([self.delegate respondsToSelector:@selector(scrollViewWillBeginDragging:)]) {
-                [self.delegate scrollViewWillBeginDragging:self];
-            }
-            
-            if (self.directionalLockEnabled) {
-                if (!_directionalLock) {
-                    CGFloat x = translation.x * translation.x;
-                    CGFloat y = translation.y * translation.y;
-                    if (x > y) {
-                        _directionalLock = YES;
-                        _direction = STPScrollViewScrollDirectionHorizontal;
-                    }
-                    if (x < y) {
-                        _directionalLock = YES;
-                        _direction = STPScrollViewScrollDirectionVertical;
-                    }
-                }
-            }
-            
-        }
-            break;
-        case UIGestureRecognizerStateChanged:
-        {
-
-            _tracking = NO;
-            _dragging = YES;
-            _decelerating = NO;
-            
-            
-            CGFloat availableOffsetX = self.contentSize.width - self.bounds.size.width + self.contentInset.right;
-            CGFloat availableOffsetY = self.contentSize.height - self.bounds.size.height + self.contentInset.bottom;
-            
-            CGFloat translationX = translation.x;
-            CGFloat translationY = translation.y;
-            
-            if (self.directionalLockEnabled) {
-                if (_direction == STPScrollViewScrollDirectionVertical) {
-                    translationX = 0;
-                }
-                if (_direction == STPScrollViewScrollDirectionHorizontal) {
-                    translationY = 0;
-                }
-            }
-            
-            if (!self.alwaysBounceHorizontal) {
-                if (self.contentSize.width <= self.bounds.size.width) {
-                    translationX = 0;
-                }
-            }
-            
-            if (!self.alwaysBounceVertical) {
-                if (self.contentSize.height <= self.bounds.size.height) {
-                    translationY = 0;
-                }
-            }
-            
-            
-            // contentSizeを超えたときの抵抗
-            if (self.contentOffset.x <= self.contentInset.left || availableOffsetX <= self.contentOffset.x) {
-                translationX = translationX / RESISTANCE_INTERACTIVE;
-            }
-            
-            if (self.contentOffset.y <= self.contentInset.top || availableOffsetY <= self.contentOffset.y) {
-                translationY = translationY / RESISTANCE_INTERACTIVE;
-            }
-            
-            if (!self.bounces) {
-                if (self.contentOffset.x <= self.contentInset.left || availableOffsetX <= self.contentOffset.x) {
-                    translationX = 0;
-                }
-                
-                if (self.contentOffset.y <= self.contentInset.top || availableOffsetY <= self.contentOffset.y) {
-                    translationY = 0;
-                }
-            }
-            
-            self.contentOffset = CGPointMake(self.contentOffset.x - translationX, self.contentOffset.y - translationY);
-            [recognizer setTranslation:CGPointZero inView:self];
-            
-            
-            
-        }
-            break;
-        case UIGestureRecognizerStateEnded:
-        {
-            
-            _tracking = NO;
-            _dragging = NO;
-            _decelerating = YES;
-            
-
-            CGFloat velocityX = velocity.x;
-            CGFloat velocityY = velocity.y;
-            
-            if (self.directionalLockEnabled) {
-                if (_direction == STPScrollViewScrollDirectionVertical) {
-                    velocityX = 0;
-                }
-                if (_direction == STPScrollViewScrollDirectionHorizontal) {
-                    velocityY = 0;
-                }
-            }
-            
-            if (!self.alwaysBounceHorizontal) {
-                if (self.contentSize.width <= self.bounds.size.width) {
-                    velocityX = 0;
-                }
-            }
-            
-            if (!self.alwaysBounceVertical) {
-                if (self.contentSize.height <= self.bounds.size.height) {
-                    velocityY = 0;
-                }
-            }
-            
-            if ([self.delegate respondsToSelector:@selector(scrollViewDidEndDragging:willDecelerate:)]) {
-                [self.delegate scrollViewDidEndDragging:self willDecelerate:self.bounces];
-            }
-            
-            if ([self.delegate respondsToSelector:@selector(scrollViewDidEndDecelerating:)]) {
-                [self.delegate scrollViewDidEndDecelerating:self];
-            }
-            
-            _animating = YES;
-            
-            // declerating X content offset
-            _deceleratingX = YES;
-            POPDecayAnimation *decayAnimationX = [POPDecayAnimation animation];
-            POPAnimatableProperty *propX = [POPAnimatableProperty propertyWithName:@"stp.scrollView.animation.decay.property.x" initializer:^(POPMutableAnimatableProperty *prop) {
-                prop.readBlock = ^(id obj, CGFloat values[]) {
-                    values[0] = [obj contentOffset].x;
-                };
-                prop.writeBlock = ^(id obj, const CGFloat values[]) {
-                    
-                    CGPoint contentOffset = [obj contentOffset];
-                    contentOffset.x = values[0];
-                    [obj setContentOffset:contentOffset bounces:self.bounces];
-                    
-                };
-                prop.threshold = 0.01;
-            }];
-            decayAnimationX.property = propX;
-            decayAnimationX.velocity = @(-velocityX);
-            decayAnimationX.delegate = self;
-            decayAnimationX.deceleration = self.decelerationRate;
-            decayAnimationX.completionBlock = ^(POPAnimation *anim, BOOL finished) {
-                
-                _deceleratingX = NO;
-                
-                // 2軸のアニメーションが終了してからProtocolを呼び出し
-                if (!_deceleratingX && !_deceleratingY) {
-                    if ([self.delegate respondsToSelector:@selector(scrollViewDidEndDecelerating:)]) {
-                        [self.delegate scrollViewDidEndDecelerating:self];
-                    }
-                }
-            
-            };
-            [self pop_addAnimation:decayAnimationX forKey:@"stp.scrollView.animation.decay.x"];
-            
-            
-            // declerating Y content offset
-            _deceleratingY = YES;
-            POPDecayAnimation *decayAnimationY = [POPDecayAnimation animation];
-            POPAnimatableProperty *propY = [POPAnimatableProperty propertyWithName:@"stp.scrollView.animation.decay.property.y" initializer:^(POPMutableAnimatableProperty *prop) {
-                prop.readBlock = ^(id obj, CGFloat values[]) {
-                    values[0] = [obj contentOffset].y;
-                };
-                prop.writeBlock = ^(id obj, const CGFloat values[]) {
-                    
-                    CGPoint contentOffset = [obj contentOffset];
-                    contentOffset.y = values[0];
-                    [obj setContentOffset:contentOffset bounces:self.bounces];
-                    
-                };
-                
-                prop.threshold = 0.01;
-            }];
-            decayAnimationY.property = propY;
-            decayAnimationY.velocity = @(-velocityY);
-            decayAnimationY.delegate = self;
-            decayAnimationY.deceleration = self.decelerationRate;
-            decayAnimationY.completionBlock = ^(POPAnimation *anim, BOOL finished) {
-                
-                _deceleratingY = NO;
-                
-                // 2軸のアニメーションが終了してからProtocolを呼び出し
-                if (!_deceleratingX && !_deceleratingY) {
-                    if ([self.delegate respondsToSelector:@selector(scrollViewDidEndDecelerating:)]) {
-                        [self.delegate scrollViewDidEndDecelerating:self];
-                    }
-                }
-                
-            };
-            [self pop_addAnimation:decayAnimationY forKey:@"stp.scrollView.animation.decay.y"];
-            
-        }
-            break;
-            
-        default:
-            break;
-    }
-    
 }
 
 - (void)scrollRectToVisible:(CGRect)rect animated:(BOOL)animated
@@ -390,18 +174,46 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
     [self setContentOffset:[self _limitOffset:offset] animated:animated];
 }
 
+#pragma mark - ContentOffset
+
+- (void)setContentOffset:(CGPoint)contentOffset
+{
+    
+    CGFloat deltaX = contentOffset.x - _contentOffset.x;
+    CGFloat deltaY = contentOffset.y - _contentOffset.y;
+    CGPoint deltaPoint = CGPointMake(deltaX, deltaY);
+    _contentOffset = contentOffset;
+    
+    [self.subviews enumerateObjectsUsingBlock:^(UIView *view, NSUInteger idx, BOOL *stop) {
+        
+        //NSLog(@"-position %@", NSStringFromCGPoint(view.layer.frame.origin));
+        
+        view.layer.position = CGPointMake(view.layer.position.x - deltaPoint.x, view.layer.position.y - deltaPoint.y);
+
+        //NSLog(@"+position %@", NSStringFromCGPoint(view.layer.frame.origin));
+        //view.layer.frame = (CGRect){CGPointMake(view.layer.frame.origin.x - deltaPoint.x, view.layer.frame.origin.y - deltaPoint.y), view.layer.frame.size};
+    }];
+    
+    if ([self.delegate respondsToSelector:@selector(scrollViewDidScroll:)]) {
+        [self.delegate scrollViewDidScroll:self];
+    }
+}
+
 - (void)setContentOffset:(CGPoint)contentOffset bounces:(BOOL)bounces
 {
     
+    CGFloat availableOffsetX = self.contentSize.width + self.contentInset.left - (self.bounds.size.width - self.contentInset.right);
+    CGFloat availableOffsetY = self.contentSize.height + self.contentInset.top - (self.bounds.size.height - self.contentInset.bottom);
+    
+    availableOffsetX = MAX(0, availableOffsetX);
+    availableOffsetY = MAX(0, availableOffsetY);
+    
+    CGFloat targetOffsetX = -(self.contentInset.left - availableOffsetX);
+    CGFloat targetOffsetY = -(self.contentInset.top - availableOffsetY);
+    
     if (bounces) {
         
-        CGFloat availableOffsetX = self.contentSize.width - self.bounds.size.width + self.contentInset.right;
-        CGFloat availableOffsetY = self.contentSize.height - self.bounds.size.height + self.contentInset.bottom;
-        
-        availableOffsetX = MAX(0, availableOffsetX);
-        availableOffsetY = MAX(0, availableOffsetY);
-        
-        if (contentOffset.x <= self.contentInset.left || availableOffsetX <= contentOffset.x) {
+        if (contentOffset.x <= -self.contentInset.left || targetOffsetX <= contentOffset.x) {
             
             POPSpringAnimation *animation = [self pop_animationForKey:@"stp.scrollView.animation.bounce.x"];
             POPDecayAnimation *decayAnimation = [self pop_animationForKey:@"stp.scrollView.animation.decay.x"];
@@ -426,6 +238,7 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
                         prop.threshold = 0.01;
                     }];
                     bouncsAnimation.property = prop;
+                    bouncsAnimation.springSpeed = BOUNCES_SPRINGSPEED;
                     bouncsAnimation.velocity = decayAnimation.velocity;
                     bouncsAnimation.delegate = self;
                     
@@ -433,8 +246,8 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
                         bouncsAnimation.toValue = @(-self.contentInset.left);
                     }
                     
-                    if (availableOffsetX <= contentOffset.x) {
-                        bouncsAnimation.toValue = @(availableOffsetX);
+                    if (targetOffsetX <= contentOffset.x) {
+                        bouncsAnimation.toValue = @(targetOffsetX);
                     }
                     
                     [self pop_addAnimation:bouncsAnimation forKey:@"stp.scrollView.animation.bounce.x"];
@@ -442,8 +255,8 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
                 }
             }
         }
-        
-        if (contentOffset.y <= self.contentInset.top || availableOffsetY <= contentOffset.y) {
+        if (contentOffset.y <= -self.contentInset.top || targetOffsetY <= contentOffset.y) {
+            
             POPSpringAnimation *animation = [self pop_animationForKey:@"stp.scrollView.animation.bounce.y"];
             POPDecayAnimation *decayAnimation = [self pop_animationForKey:@"stp.scrollView.animation.decay.y"];
             if (!animation) {
@@ -466,15 +279,16 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
                         prop.threshold = 0.01;
                     }];
                     bouncsAnimation.property = prop;
+                    bouncsAnimation.springSpeed = BOUNCES_SPRINGSPEED;
                     bouncsAnimation.velocity = decayAnimation.velocity;
                     bouncsAnimation.delegate = self;
                     
-                    if (contentOffset.y <= self.contentInset.top) {
+                    if (contentOffset.y <= -self.contentInset.top) {
                         bouncsAnimation.toValue = @(-self.contentInset.top);
                     }
                     
-                    if (availableOffsetY <= contentOffset.y) {
-                        bouncsAnimation.toValue = @(availableOffsetY);
+                    if (targetOffsetY <= contentOffset.y) {
+                        bouncsAnimation.toValue = @(targetOffsetY);
                     }
                     
                     [self pop_addAnimation:bouncsAnimation forKey:@"stp.scrollView.animation.bounce.y"];
@@ -482,14 +296,11 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
                 }
             }
         }
-        
+
+        [self setContentOffset:contentOffset];
     } else {
-        
-        CGFloat availableOffsetX = self.contentSize.width - self.bounds.size.width + self.contentInset.right;
-        CGFloat availableOffsetY = self.contentSize.height - self.bounds.size.height + self.contentInset.bottom;
-        
-        availableOffsetX = MAX(0, availableOffsetX);
-        availableOffsetY = MAX(0, availableOffsetY);
+    
+        CGPoint contentOffset = self.contentOffset;
         
         if (contentOffset.x <= self.contentInset.left || availableOffsetX <= contentOffset.x) {
             [self pop_removeAnimationForKey:@"stp.scrollView.animation.decay.x"];
@@ -515,7 +326,6 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
         
         [self setContentOffset:contentOffset];
     }
-
     
 }
 
@@ -580,208 +390,7 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
     }
 }
 
-- (void)setContentOffset:(CGPoint)contentOffset
-{
-    
-    CGFloat availableOffsetX = self.contentSize.width - self.bounds.size.width + self.contentInset.right;
-    CGFloat availableOffsetY = self.contentSize.height - self.bounds.size.height + self.contentInset.bottom;
-    
-    availableOffsetX = MAX(0, availableOffsetX);
-    availableOffsetY = MAX(0, availableOffsetY);
-
-    CGFloat deltaX = contentOffset.x - _contentOffset.x;
-    CGFloat deltaY = contentOffset.y - _contentOffset.y;
-    
-    CGPoint deltaPoint = CGPointMake(deltaX, deltaY);
-    _contentOffset = contentOffset;
-
-    [self.subviews enumerateObjectsUsingBlock:^(UIView *view, NSUInteger idx, BOOL *stop) {
-        view.layer.position = CGPointMake(view.layer.position.x - deltaPoint.x, view.layer.position.y - deltaPoint.y);
-    }];
-    
-    if ([self.delegate respondsToSelector:@selector(scrollViewDidScroll:)]) {
-        [self.delegate scrollViewDidScroll:self];
-    }
-
-}
-
-#pragma mark - Pinch Gesture
-
-- (void)pinchGesture:(UIPinchGestureRecognizer *)recognizer
-{
-    CGPoint location = [recognizer locationInView:self];
-    
-    switch (recognizer.state) {
-        case UIGestureRecognizerStateBegan:
-        {
-            [self pop_removeAnimationForKey:@"stp.scrollView.animation.zoom"];
-            [self pop_removeAnimationForKey:@"stp.scrollView.animation.decay.x"];
-            [self pop_removeAnimationForKey:@"stp.scrollView.animation.decay.y"];
-            [self pop_removeAnimationForKey:@"stp.scrollView.animation.bounce.x"];
-            [self pop_removeAnimationForKey:@"stp.scrollView.animation.bounce.y"];
-            
-            _zooming = YES;
-            _initialTouchPoint = location;
-            _previousPosition = location;
-            _initialTransform = self.zoomView.layer.affineTransform;
-            _lastTouchTime = CFAbsoluteTimeGetCurrent();
-            
-            [recognizer setScale:self.zoomScale];
-            _initialScalePosition = CGPointMake(_initialTouchPoint.x * self.zoomScale, _initialTouchPoint.y * self.zoomScale);
-            _previousScalePosition = _initialScalePosition;
-
-            if ([self.delegate respondsToSelector:@selector(scrollViewWillBeginZooming:withView:)]) {
-                [self.delegate scrollViewWillBeginZooming:self withView:self.zoomView];
-            }
-            
-            
-        }
-            break;
-        case UIGestureRecognizerStateChanged:
-        {
-            
-            CGFloat targetScale = recognizer.scale;
-            
-            if (self.bouncesZoom) {
-                if (targetScale <= self.minimumZoomScale) {
-                    targetScale = self.minimumZoomScale - (self.minimumZoomScale - targetScale) / RESISTANCE_INTERACTIVE;
-                }
-                
-                if (self.maximumZoomScale <= targetScale) {
-                    targetScale = self.maximumZoomScale + (targetScale - self.maximumZoomScale) / RESISTANCE_INTERACTIVE;
-                }
-            } else {
-                if (targetScale <= self.minimumZoomScale) {
-                    targetScale = self.minimumZoomScale;
-                }
-                
-                if (self.maximumZoomScale <= targetScale) {
-                    targetScale = self.maximumZoomScale;
-                }
-            }
-            
-            [self setZoomScale:targetScale];
-            
-            CGPoint translation = CGPointMake(location.x - _previousPosition.x, location.y - _previousPosition.y);
-            CGFloat translationX = translation.x;
-            CGFloat translationY = translation.y;
-            CGPoint scalePosition = CGPointMake(_initialTouchPoint.x * self.zoomScale, _initialTouchPoint.y * self.zoomScale);
-            CGPoint scaleTranslation = CGPointMake(_previousScalePosition.x - scalePosition.x, _previousScalePosition.y - scalePosition.y);
-            
-            self.contentOffset = CGPointMake(self.contentOffset.x - translationX/RESISTANCE_INTERACTIVE - scaleTranslation.x, self.contentOffset.y - translationY/RESISTANCE_INTERACTIVE  - scaleTranslation.y);
-            
-            _previousScalePosition = scalePosition;
-            _previousPosition = location;
-            
-            _lastTouchTime = CFAbsoluteTimeGetCurrent();
-             
-        }
-            break;
-        case UIGestureRecognizerStateEnded:
-        {
-            _zooming = NO;
-            
-            CGFloat targetScale = recognizer.scale;
-            
-            
-            if (targetScale < self.minimumZoomScale) {
-                targetScale = self.minimumZoomScale;
-            }
-            
-            if (self.maximumZoomScale < targetScale) {
-                targetScale = self.maximumZoomScale;
-            }
-            
-            self.contentSize = CGSizeMake(targetScale * self.zoomView.layer.bounds.size.width, targetScale * self.zoomView.layer.bounds.size.height);
-            [self setZoomScale:targetScale animated:self.bouncesZoom];
-        
-            NSTimeInterval currentTime = CFAbsoluteTimeGetCurrent();
-            CGPoint translation = CGPointMake(location.x - _previousPosition.x, location.y - _previousPosition.y);
-            
-            CGFloat velocityX = POPPixelsToPoints(translation.x) / (currentTime - _lastTouchTime);
-            CGFloat velocityY = POPPixelsToPoints(translation.y) / (currentTime - _lastTouchTime);
-            
-            _animating = YES;
-            
-            // declerating X content offset
-            _deceleratingX = YES;
-            POPDecayAnimation *decayAnimationX = [POPDecayAnimation animation];
-            POPAnimatableProperty *propX = [POPAnimatableProperty propertyWithName:@"stp.scrollView.animation.decay.property.x" initializer:^(POPMutableAnimatableProperty *prop) {
-                prop.readBlock = ^(id obj, CGFloat values[]) {
-                    values[0] = [obj contentOffset].x;
-                };
-                prop.writeBlock = ^(id obj, const CGFloat values[]) {
-                    
-                    CGPoint contentOffset = [obj contentOffset];
-                    contentOffset.x = values[0];
-                    [obj setContentOffset:contentOffset bounces:self.bounces];
-                    
-                };
-                prop.threshold = 0.01;
-            }];
-            decayAnimationX.property = propX;
-            decayAnimationX.velocity = @(-velocityX);
-            decayAnimationX.delegate = self;
-            decayAnimationX.deceleration = self.decelerationRate;
-            decayAnimationX.completionBlock = ^(POPAnimation *anim, BOOL finished) {
-                
-                _deceleratingX = NO;
-                
-                // 2軸のアニメーションが終了してからProtocolを呼び出し
-                if (!_deceleratingX && !_deceleratingY) {
-                    if ([self.delegate respondsToSelector:@selector(scrollViewDidEndDecelerating:)]) {
-                        [self.delegate scrollViewDidEndDecelerating:self];
-                    }
-                }
-                
-            };
-            [self pop_addAnimation:decayAnimationX forKey:@"stp.scrollView.animation.decay.x"];
-            
-            
-            // declerating Y content offset
-            _deceleratingY = YES;
-            POPDecayAnimation *decayAnimationY = [POPDecayAnimation animation];
-            POPAnimatableProperty *propY = [POPAnimatableProperty propertyWithName:@"stp.scrollView.animation.decay.property.y" initializer:^(POPMutableAnimatableProperty *prop) {
-                prop.readBlock = ^(id obj, CGFloat values[]) {
-                    values[0] = [obj contentOffset].y;
-                };
-                prop.writeBlock = ^(id obj, const CGFloat values[]) {
-                    
-                    CGPoint contentOffset = [obj contentOffset];
-                    contentOffset.y = values[0];
-                    [obj setContentOffset:contentOffset bounces:self.bounces];
-                    
-                };
-                
-                prop.threshold = 0.01;
-            }];
-            decayAnimationY.property = propY;
-            decayAnimationY.velocity = @(-velocityY);
-            decayAnimationY.delegate = self;
-            decayAnimationY.deceleration = self.decelerationRate;
-            decayAnimationY.completionBlock = ^(POPAnimation *anim, BOOL finished) {
-                
-                _deceleratingY = NO;
-                
-                // 2軸のアニメーションが終了してからProtocolを呼び出し
-                if (!_deceleratingX && !_deceleratingY) {
-                    if ([self.delegate respondsToSelector:@selector(scrollViewDidEndDecelerating:)]) {
-                        [self.delegate scrollViewDidEndDecelerating:self];
-                    }
-                }
-                
-            };
-            [self pop_addAnimation:decayAnimationY forKey:@"stp.scrollView.animation.decay.y"];
-            
-            
-        }
-            break;
-            
-        default:
-            break;
-    }
-}
-
+#pragma mark - zoom 
 
 - (UIView *)zoomView
 {
@@ -791,13 +400,6 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
     return nil;
 }
 
-- (void)setZoomViewPostion:(CGPoint)position withResistance:(CGFloat)resistance
-{
-    CGFloat deltaX = (position.x - self.zoomView.layer.position.x) * resistance;
-    CGFloat deltaY = (position.y - self.zoomView.layer.position.y) * resistance;
-    
-    self.zoomView.layer.position = (CGPoint){self.zoomView.layer.position.x + deltaX, self.zoomView.layer.position.y + deltaY};
-}
 
 - (void)_setZoomScale:(CGFloat)zoomScale
 {
@@ -878,7 +480,7 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
         }
         
         POPBasicAnimation *zoomAnimation = [POPBasicAnimation animation];
-
+        
         POPAnimatableProperty *prop = [POPAnimatableProperty propertyWithName:@"stp.scrollView.animation.zoom.property" initializer:^(POPMutableAnimatableProperty *prop) {
             prop.readBlock = ^(id obj, CGFloat values[]) {
                 values[0] = [obj zoomScale];
@@ -967,6 +569,443 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
     
 }
 
+
+#pragma mark - Pan Gesture
+
+- (void)panGesture:(STPScrollViewPanGestureRecognizer *)recognizer
+{
+    CGPoint location = [recognizer locationInView:self];
+    CGPoint translation = [recognizer translationInView:self];
+    CGPoint velocity = [recognizer velocityInView:self];
+    
+    switch (recognizer.state) {
+        case UIGestureRecognizerStateBegan:
+        {
+            _tracking = YES;
+            _dragging = NO;
+            _decelerating = NO;
+            
+            _initialTouchPoint = location;
+            
+            [self pop_removeAnimationForKey:@"stp.scrollView.animation.decay.x"];
+            [self pop_removeAnimationForKey:@"stp.scrollView.animation.decay.y"];
+            
+            
+            if ([self.delegate respondsToSelector:@selector(scrollViewWillBeginDragging:)]) {
+                [self.delegate scrollViewWillBeginDragging:self];
+            }
+            
+            if (self.directionalLockEnabled) {
+                if (!_directionalLock) {
+                    CGFloat x = translation.x * translation.x;
+                    CGFloat y = translation.y * translation.y;
+
+                    if (x > y) {
+                        _directionalLock = YES;
+                        _direction = STPScrollViewScrollDirectionHorizontal;
+                    }
+                    if (x < y) {
+                        _directionalLock = YES;
+                        _direction = STPScrollViewScrollDirectionVertical;
+                    }
+                }
+            }
+            
+        }
+            break;
+        case UIGestureRecognizerStateChanged:
+        {
+            
+            _tracking = NO;
+            _dragging = YES;
+            _decelerating = NO;
+            
+
+            CGPoint contentOffset = self.contentOffset;            
+            CGFloat translationX = translation.x;
+            CGFloat translationY = translation.y;
+            
+            if (self.directionalLockEnabled) {
+                if (_direction == STPScrollViewScrollDirectionVertical) {
+                    translationX = 0;
+                }
+                if (_direction == STPScrollViewScrollDirectionHorizontal) {
+                    translationY = 0;
+                }
+            }
+            
+            if (!self.alwaysBounceHorizontal) {
+                if (self.contentSize.width <= [self availableRect].size.width) {
+                    translationX = 0;
+                }
+            }
+            
+            if (!self.alwaysBounceVertical) {
+                if (self.contentSize.height <= [self availableRect].size.height) {
+                    translationY = 0;
+                }
+            }
+            
+            
+            // contentSizeを超えたときの抵抗
+            if ([self _overAvailableOffsetX:contentOffset]) {
+                translationX = translationX / RESISTANCE_INTERACTIVE;
+            }
+            
+            if ([self _overAvailableOffsetY:contentOffset]) {
+                translationY = translationY / RESISTANCE_INTERACTIVE;
+            }
+            
+            if (!self.bounces) {
+                if ([self _overAvailableOffsetX:contentOffset]) {
+                    translationX = 0;
+                }
+                
+                if ([self _overAvailableOffsetY:contentOffset]) {
+                    translationY = 0;
+                }
+            }
+            
+            self.contentOffset = CGPointMake(self.contentOffset.x - translationX, self.contentOffset.y - translationY);
+            [recognizer setTranslation:CGPointZero inView:self];
+            
+            
+            
+        }
+            break;
+        case UIGestureRecognizerStateEnded:
+        {
+            
+            _tracking = NO;
+            _dragging = NO;
+            _decelerating = YES;
+            
+            CGPoint contentOffset = self.contentOffset;
+            CGFloat velocityX = velocity.x;
+            CGFloat velocityY = velocity.y;
+            
+            if (self.directionalLockEnabled) {
+                if (_direction == STPScrollViewScrollDirectionVertical) {
+                    velocityX = 0;
+                }
+                if (_direction == STPScrollViewScrollDirectionHorizontal) {
+                    velocityY = 0;
+                }
+            }
+            
+            if (!self.alwaysBounceHorizontal) {
+                if (self.contentSize.width <= [self availableRect].size.width) {
+                    velocityX = 0;
+                }
+            }
+            
+            if (!self.alwaysBounceVertical) {
+                if (self.contentSize.height <= [self availableRect].size.height) {
+                    velocityY = 0;
+                }
+            }
+            
+            
+            if ([self _overAvailableOffsetX:contentOffset]) {
+                velocityX = velocityX / RESISTANCE_INTERACTIVE;
+            }
+            
+            if ([self _overAvailableOffsetY:contentOffset]) {
+                velocityY = velocityY / RESISTANCE_INTERACTIVE;
+            }
+            
+            if ([self.delegate respondsToSelector:@selector(scrollViewDidEndDragging:willDecelerate:)]) {
+                [self.delegate scrollViewDidEndDragging:self willDecelerate:self.bounces];
+            }
+            
+            if ([self.delegate respondsToSelector:@selector(scrollViewDidEndDecelerating:)]) {
+                [self.delegate scrollViewDidEndDecelerating:self];
+            }
+            
+            _animating = YES;
+            
+            // declerating X content offset
+            _deceleratingX = YES;
+            
+            POPDecayAnimation *decayAnimationX = [self pop_animationForKey:@"stp.scrollView.animation.decay.x"];
+            if (!decayAnimationX) {
+                decayAnimationX = [POPDecayAnimation animation];
+            }
+
+            POPAnimatableProperty *propX = [POPAnimatableProperty propertyWithName:@"stp.scrollView.animation.decay.property.x" initializer:^(POPMutableAnimatableProperty *prop) {
+                prop.readBlock = ^(id obj, CGFloat values[]) {
+                    values[0] = [obj contentOffset].x;
+                };
+                prop.writeBlock = ^(id obj, const CGFloat values[]) {
+                    
+                    CGPoint contentOffset = [obj contentOffset];
+                    contentOffset.x = values[0];
+                    [obj setContentOffset:contentOffset bounces:self.bounces];
+                    
+                };
+                prop.threshold = 0.01;
+            }];
+            decayAnimationX.property = propX;
+            decayAnimationX.velocity = @(-velocityX);
+            decayAnimationX.delegate = self;
+            decayAnimationX.deceleration = self.decelerationRate;
+            decayAnimationX.completionBlock = ^(POPAnimation *anim, BOOL finished) {
+                
+                _deceleratingX = NO;
+                
+                // 2軸のアニメーションが終了してからProtocolを呼び出し
+                if (!_deceleratingX && !_deceleratingY) {
+                    if ([self.delegate respondsToSelector:@selector(scrollViewDidEndDecelerating:)]) {
+                        [self.delegate scrollViewDidEndDecelerating:self];
+                    }
+                }
+                
+            };
+            [self pop_addAnimation:decayAnimationX forKey:@"stp.scrollView.animation.decay.x"];
+            
+            
+            // declerating Y content offset
+            _deceleratingY = YES;
+            
+            POPDecayAnimation *decayAnimationY = [self pop_animationForKey:@"stp.scrollView.animation.decay.y"];
+            if (!decayAnimationY) {
+                decayAnimationY = [POPDecayAnimation animation];
+            }
+            POPAnimatableProperty *propY = [POPAnimatableProperty propertyWithName:@"stp.scrollView.animation.decay.property.y" initializer:^(POPMutableAnimatableProperty *prop) {
+                prop.readBlock = ^(id obj, CGFloat values[]) {
+                    values[0] = [obj contentOffset].y;
+                };
+                prop.writeBlock = ^(id obj, const CGFloat values[]) {
+                    
+                    CGPoint contentOffset = [obj contentOffset];
+                    contentOffset.y = values[0];
+                    [obj setContentOffset:contentOffset bounces:self.bounces];
+                    
+                };
+                
+                prop.threshold = 0.01;
+            }];
+            decayAnimationY.property = propY;
+            decayAnimationY.velocity = @(-velocityY);
+            decayAnimationY.delegate = self;
+            decayAnimationY.deceleration = self.decelerationRate;
+            decayAnimationY.completionBlock = ^(POPAnimation *anim, BOOL finished) {
+                
+                _deceleratingY = NO;
+                
+                // 2軸のアニメーションが終了してからProtocolを呼び出し
+                if (!_deceleratingX && !_deceleratingY) {
+                    if ([self.delegate respondsToSelector:@selector(scrollViewDidEndDecelerating:)]) {
+                        [self.delegate scrollViewDidEndDecelerating:self];
+                    }
+                }
+                
+            };
+            [self pop_addAnimation:decayAnimationY forKey:@"stp.scrollView.animation.decay.y"];
+            
+        }
+            break;
+            
+        default:
+            break;
+    }
+    
+}
+
+#pragma mark - Pinch Gesture
+
+- (void)pinchGesture:(UIPinchGestureRecognizer *)recognizer
+{
+    CGPoint location = [recognizer locationInView:self];
+    
+    switch (recognizer.state) {
+        case UIGestureRecognizerStateBegan:
+        {
+            [self pop_removeAnimationForKey:@"stp.scrollView.animation.zoom"];
+            [self pop_removeAnimationForKey:@"stp.scrollView.animation.decay.x"];
+            [self pop_removeAnimationForKey:@"stp.scrollView.animation.decay.y"];
+            [self pop_removeAnimationForKey:@"stp.scrollView.animation.bounce.x"];
+            [self pop_removeAnimationForKey:@"stp.scrollView.animation.bounce.y"];
+            
+            _zooming = YES;
+            _initialTouchPoint = location;
+            _previousPosition = location;
+            _initialTransform = self.zoomView.layer.affineTransform;
+            _lastTouchTime = CFAbsoluteTimeGetCurrent();
+            
+            [recognizer setScale:self.zoomScale];
+            _initialScalePosition = CGPointMake(_initialTouchPoint.x * self.zoomScale, _initialTouchPoint.y * self.zoomScale);
+            _previousScalePosition = _initialScalePosition;
+            
+            if ([self.delegate respondsToSelector:@selector(scrollViewWillBeginZooming:withView:)]) {
+                [self.delegate scrollViewWillBeginZooming:self withView:self.zoomView];
+            }
+            
+            
+        }
+            break;
+        case UIGestureRecognizerStateChanged:
+        {
+            
+            CGFloat targetScale = recognizer.scale;
+            
+            if (self.bouncesZoom) {
+                if (targetScale <= self.minimumZoomScale) {
+                    targetScale = self.minimumZoomScale - (self.minimumZoomScale - targetScale) / RESISTANCE_INTERACTIVE;
+                }
+                
+                if (self.maximumZoomScale <= targetScale) {
+                    targetScale = self.maximumZoomScale + (targetScale - self.maximumZoomScale) / RESISTANCE_INTERACTIVE;
+                }
+            } else {
+                if (targetScale <= self.minimumZoomScale) {
+                    targetScale = self.minimumZoomScale;
+                }
+                
+                if (self.maximumZoomScale <= targetScale) {
+                    targetScale = self.maximumZoomScale;
+                }
+            }
+            
+            [self setZoomScale:targetScale];
+            
+            CGPoint translation = CGPointMake(location.x - _previousPosition.x, location.y - _previousPosition.y);
+            CGFloat translationX = translation.x;
+            CGFloat translationY = translation.y;
+            CGPoint scalePosition = CGPointMake(_initialTouchPoint.x * self.zoomScale, _initialTouchPoint.y * self.zoomScale);
+            CGPoint scaleTranslation = CGPointMake(_previousScalePosition.x - scalePosition.x, _previousScalePosition.y - scalePosition.y);
+            
+            self.contentOffset = CGPointMake(self.contentOffset.x - translationX/RESISTANCE_INTERACTIVE - scaleTranslation.x, self.contentOffset.y - translationY/RESISTANCE_INTERACTIVE  - scaleTranslation.y);
+            
+            _previousScalePosition = scalePosition;
+            _previousPosition = location;
+            
+            _lastTouchTime = CFAbsoluteTimeGetCurrent();
+            
+        }
+            break;
+        case UIGestureRecognizerStateEnded:
+        {
+            _zooming = NO;
+            
+            CGFloat targetScale = recognizer.scale;
+            
+            
+            if (targetScale < self.minimumZoomScale) {
+                targetScale = self.minimumZoomScale;
+            }
+            
+            if (self.maximumZoomScale < targetScale) {
+                targetScale = self.maximumZoomScale;
+            }
+            
+            self.contentSize = CGSizeMake(targetScale * self.zoomView.layer.bounds.size.width, targetScale * self.zoomView.layer.bounds.size.height);
+            [self setZoomScale:targetScale animated:self.bouncesZoom];
+            
+            NSTimeInterval currentTime = CFAbsoluteTimeGetCurrent();
+            CGPoint translation = CGPointMake(location.x - _previousPosition.x, location.y - _previousPosition.y);
+            
+            CGFloat velocityX = POPPixelsToPoints(translation.x) / (currentTime - _lastTouchTime);
+            CGFloat velocityY = POPPixelsToPoints(translation.y) / (currentTime - _lastTouchTime);
+            
+            _animating = YES;
+            
+            // declerating X content offset
+            _deceleratingX = YES;
+            POPDecayAnimation *decayAnimationX = [POPDecayAnimation animation];
+            POPAnimatableProperty *propX = [POPAnimatableProperty propertyWithName:@"stp.scrollView.animation.decay.property.x" initializer:^(POPMutableAnimatableProperty *prop) {
+                prop.readBlock = ^(id obj, CGFloat values[]) {
+                    values[0] = [obj contentOffset].x;
+                };
+                prop.writeBlock = ^(id obj, const CGFloat values[]) {
+                    
+                    CGPoint contentOffset = [obj contentOffset];
+                    contentOffset.x = values[0];
+                    [obj setContentOffset:contentOffset bounces:self.bounces];
+                    
+                };
+                prop.threshold = 0.01;
+            }];
+            decayAnimationX.property = propX;
+            decayAnimationX.velocity = @(-velocityX);
+            decayAnimationX.delegate = self;
+            decayAnimationX.deceleration = self.decelerationRate;
+            decayAnimationX.completionBlock = ^(POPAnimation *anim, BOOL finished) {
+                
+                _deceleratingX = NO;
+                
+                // 2軸のアニメーションが終了してからProtocolを呼び出し
+                if (!_deceleratingX && !_deceleratingY) {
+                    if ([self.delegate respondsToSelector:@selector(scrollViewDidEndDecelerating:)]) {
+                        [self.delegate scrollViewDidEndDecelerating:self];
+                    }
+                }
+                
+            };
+            [self pop_addAnimation:decayAnimationX forKey:@"stp.scrollView.animation.decay.x"];
+            
+            
+            // declerating Y content offset
+            _deceleratingY = YES;
+            POPDecayAnimation *decayAnimationY = [POPDecayAnimation animation];
+            POPAnimatableProperty *propY = [POPAnimatableProperty propertyWithName:@"stp.scrollView.animation.decay.property.y" initializer:^(POPMutableAnimatableProperty *prop) {
+                prop.readBlock = ^(id obj, CGFloat values[]) {
+                    values[0] = [obj contentOffset].y;
+                };
+                prop.writeBlock = ^(id obj, const CGFloat values[]) {
+                    
+                    CGPoint contentOffset = [obj contentOffset];
+                    contentOffset.y = values[0];
+                    [obj setContentOffset:contentOffset bounces:self.bounces];
+                    
+                };
+                
+                prop.threshold = 0.01;
+            }];
+            decayAnimationY.property = propY;
+            decayAnimationY.velocity = @(-velocityY);
+            decayAnimationY.delegate = self;
+            decayAnimationY.deceleration = self.decelerationRate;
+            decayAnimationY.completionBlock = ^(POPAnimation *anim, BOOL finished) {
+                
+                _deceleratingY = NO;
+                
+                // 2軸のアニメーションが終了してからProtocolを呼び出し
+                if (!_deceleratingX && !_deceleratingY) {
+                    if ([self.delegate respondsToSelector:@selector(scrollViewDidEndDecelerating:)]) {
+                        [self.delegate scrollViewDidEndDecelerating:self];
+                    }
+                }
+                
+            };
+            [self pop_addAnimation:decayAnimationY forKey:@"stp.scrollView.animation.decay.y"];
+            
+            
+        }
+            break;
+            
+        default:
+            break;
+    }
+}
+
+- (BOOL)_overAvailableOffsetX:(CGPoint)contentOffset
+{
+    CGFloat availableOffsetX = self.contentSize.width + self.contentInset.left - (self.bounds.size.width - self.contentInset.right);
+
+    availableOffsetX = MAX(0, availableOffsetX);
+    CGFloat targetOffsetX = -(self.contentInset.left - availableOffsetX);
+    return (contentOffset.x <= -self.contentInset.left || targetOffsetX <= contentOffset.x);
+}
+
+- (BOOL)_overAvailableOffsetY:(CGPoint)contentOffset
+{
+    CGFloat availableOffsetY = self.contentSize.height + self.contentInset.top - (self.bounds.size.height - self.contentInset.bottom);
+    availableOffsetY = MAX(0, availableOffsetY);
+    CGFloat targetOffsetY = -(self.contentInset.top - availableOffsetY);
+    return (contentOffset.y <= -self.contentInset.top || targetOffsetY <= contentOffset.y);
+}
+
 - (void)_convertAnchorPoint:(CGPoint)anchorPoint
 {
     CGPoint _anchorPoint = self.zoomView.layer.anchorPoint;
@@ -1013,7 +1052,7 @@ static inline CGFloat POPPixelsToPoints(CGFloat pixels) {
 
 #pragma mark - <UIGestureRecognizerDelegate>
 
- - (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer
+- (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer
 {
     return YES;
 }
@@ -1029,10 +1068,15 @@ static inline CGFloat POPPixelsToPoints(CGFloat pixels) {
 
 - (void)pop_animationDidStop:(POPAnimation *)anim finished:(BOOL)finished
 {
-    if (![[self pop_animationKeys] count]) {
-        _animating = NO;
-        _directionalLock = NO;
+    
+    if (finished) {
+        if ([[self pop_animationKeys] count] == 0) {
+            _animating = NO;
+            _directionalLock = NO;
+        }
     }
+    
+    
 }
 
 - (void)dealloc

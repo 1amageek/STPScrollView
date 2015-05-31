@@ -12,8 +12,7 @@
 
 @property (nonatomic) UITapGestureRecognizer *tapGestureRecognizer;
 
-@property (nonatomic) UIView *contentView2;
-@property (nonatomic) UIView *uiContentView2;
+
 
 @end
 
@@ -44,20 +43,29 @@
     self.uiContentView2 = [[UIView alloc] initWithFrame:CGRectZero];
     self.contentView2 = [[UIView alloc] initWithFrame:CGRectZero];
     
+    self.uiContentView3 = [[UIView alloc] initWithFrame:CGRectZero];
+    self.contentView3 = [[UIView alloc] initWithFrame:CGRectZero];
+    
     [self.view addSubview:self.uiScrollView];
     [self.view addSubview:self.scrollView];
     
     [self.uiScrollView addSubview:self.uiContentView];
     [self.scrollView addSubview:self.contentView];
-    
+    /*
     [self.uiScrollView addSubview:self.uiContentView2];
     [self.scrollView addSubview:self.contentView2];
     
+    [self.uiScrollView addSubview:self.uiContentView3];
+    [self.scrollView addSubview:self.contentView3];
+    */
     self.uiContentView.backgroundColor = [UIColor colorWithRed:0.2 green:1 blue:0.65 alpha:1];
     self.contentView.backgroundColor = [UIColor colorWithRed:0.5 green:1 blue:0.85 alpha:1];
     
     self.uiContentView2.backgroundColor = [UIColor colorWithRed:0.3 green:0.45 blue:0.85 alpha:1];
     self.contentView2.backgroundColor = [UIColor colorWithRed:0.3 green:0.45 blue:0.85 alpha:1];
+    
+    self.uiContentView3.backgroundColor = [UIColor colorWithRed:0.6 green:0.45 blue:0.85 alpha:1];
+    self.contentView3.backgroundColor = [UIColor colorWithRed:0.7 green:0.45 blue:0.85 alpha:1];
     
     self.uiScrollView.backgroundColor = [UIColor colorWithRed:0.95 green:0.95 blue:0.95 alpha:1];
     self.scrollView.backgroundColor = [UIColor whiteColor];
@@ -74,6 +82,9 @@
     self.contentView2.frame = content2Rect;
     self.uiContentView2.frame = content2Rect;
     
+    CGRect content3Rect = CGRectMake(0, 0, 10, 10);
+    self.contentView3.frame = content3Rect;
+    self.uiContentView3.frame = content3Rect;
     
     self.tapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapped:)];
     [self.view addGestureRecognizer:self.tapGestureRecognizer];

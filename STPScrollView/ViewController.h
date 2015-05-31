@@ -13,8 +13,16 @@
 
 @property (nonatomic) UIScrollView *uiScrollView;
 @property (nonatomic) UIView *uiContentView;
+@property (nonatomic) UIView *uiContentView2;
+@property (nonatomic) UIView *uiContentView3;
+
 @property (nonatomic) STPScrollView *scrollView;
 @property (nonatomic) UIView *contentView;
+@property (nonatomic) UIView *contentView2;
+@property (nonatomic) UIView *contentView3;
+
+
+
 
 
 @end
