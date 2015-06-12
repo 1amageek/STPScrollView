@@ -24,7 +24,7 @@ const CGFloat STPScrollViewDecelerationRateNormal = 0.997;
 const CGFloat STPScrollViewDecelerationRateFast = 0.985;
 
 
-@interface STPScrollView () <UIGestureRecognizerDelegate, POPAnimationDelegate>
+@interface STPScrollView () <UIGestureRecognizerDelegate, POPAnimationDelegate, STPScrollViewPanGestureRecognizerDelegate>
 {
     CGPoint _initialTouchPoint;
     CGFloat _initialZoomScale;
@@ -123,6 +123,11 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
 
 }
 
+- (void)setContentSize:(CGSize)contentSize
+{
+    _contentSize = contentSize;
+}
+
 - (CGRect)availableRect
 {
     return UIEdgeInsetsInsetRect(self.bounds, _contentInset);
@@ -130,9 +135,9 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    [self pop_removeAnimationForKey:@"stp.scrollView.animation.bounce.x"];
-    [self pop_removeAnimationForKey:@"stp.scrollView.animation.bounce.y"];
-    [self pop_removeAnimationForKey:@"stp.scrollView.animation.offset"];
+    //[self pop_removeAnimationForKey:@"stp.scrollView.animation.bounce.x"];
+    //[self pop_removeAnimationForKey:@"stp.scrollView.animation.bounce.y"];
+    //[self pop_removeAnimationForKey:@"stp.scrollView.animation.offset"];
 }
 
 - (void)scrollRectToVisible:(CGRect)rect animated:(BOOL)animated
@@ -576,7 +581,9 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
             
             [self pop_removeAnimationForKey:@"stp.scrollView.animation.decay.x"];
             [self pop_removeAnimationForKey:@"stp.scrollView.animation.decay.y"];
-            
+            [self pop_removeAnimationForKey:@"stp.scrollView.animation.bounce.x"];
+            [self pop_removeAnimationForKey:@"stp.scrollView.animation.bounce.y"];
+            [self pop_removeAnimationForKey:@"stp.scrollView.animation.offset"];
             
             if ([self.delegate respondsToSelector:@selector(scrollViewWillBeginDragging:)]) {
                 [self.delegate scrollViewWillBeginDragging:self];
@@ -602,7 +609,6 @@ const CGFloat STPScrollViewDecelerationRateFast = 0.985;
             break;
         case UIGestureRecognizerStateChanged:
         {
-            
             _tracking = NO;
             _dragging = YES;
             _decelerating = NO;
@@ -1044,12 +1050,74 @@ static inline CGFloat POPPixelsToPoints(CGFloat pixels) {
 }
 
 #pragma mark - <UIGestureRecognizerDelegate>
-
+/*
 - (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer
 {
+    
+    if (self.panGestureRecognizer == gestureRecognizer) {
+        
+        STPScrollViewPanGestureRecognizer *panGestureRecognizer = (STPScrollViewPanGestureRecognizer *)gestureRecognizer;
+        
+        CGPoint translation = [panGestureRecognizer translationInView:self];
+        CGPoint contentOffset = self.contentOffset;
+        contentOffset.x -= translation.x;
+        contentOffset.y -= translation.y;
+        
+        CGFloat availableOffsetX = self.contentSize.width + self.contentInset.left - (self.bounds.size.width - self.contentInset.right);
+        CGFloat availableOffsetY = self.contentSize.height + self.contentInset.top - (self.bounds.size.height - self.contentInset.bottom);
+        
+        availableOffsetX = MAX(0, availableOffsetX);
+        availableOffsetY = MAX(0, availableOffsetY);
+        
+        CGFloat targetOffsetX = -(self.contentInset.left - availableOffsetX);
+        CGFloat targetOffsetY = -(self.contentInset.top - availableOffsetY);
+        
+        if (!self.bounces) {
+            if (contentOffset.x < -self.contentInset.left || targetOffsetX < contentOffset.x) {
+                NSLog(@"NO");
+                return NO;
+            }
+            
+            if (contentOffset.y < -self.contentInset.top || targetOffsetY < contentOffset.y) {
+                NSLog(@"NO");
+                return NO;
+            }
+        }
+        
+        if (!self.alwaysBounceHorizontal) {
+            if (self.contentSize.width < [self availableRect].size.width) {
+                NSLog(@"NO");
+                return NO;
+            }
+        }
+        
+        if (!self.alwaysBounceVertical) {
+            if (self.contentSize.height < [self availableRect].size.height) {
+                NSLog(@"NO");
+                return NO;
+            }
+        }
+        
+        
+        NSLog(@"YES");
+    }
+    
     return YES;
 }
+*/
 
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer
+{
+    
+    if (gestureRecognizer == self.panGestureRecognizer) {
+        if ([otherGestureRecognizer isKindOfClass:[STPScrollViewPanGestureRecognizer class]]) {
+            return YES;
+        }
+    }
+    
+    
+    return NO;
+}
 
 #pragma mark - <POPAnimationDelegate>
 

@@ -62,6 +62,9 @@ UIKIT_EXTERN const CGFloat STPScrollViewDecelerationRateFast;
 
 @optional
 
+
+- (BOOL)scrollViewGestureRecognizerShouldBegin:(STPScrollViewPanGestureRecognizer *)gestureRecognizer;
+
 - (void)scrollViewDidScroll:(STPScrollView *)scrollView;                                               // any offset changes
 - (void)scrollViewDidZoom:(STPScrollView *)scrollView; // any zoom scale changes
 

@@ -24,15 +24,23 @@
     return self;
 }
 
+- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    [super touchesBegan:touches withEvent:event];
+    if (self.state == UIGestureRecognizerStatePossible) {
+        self.state = UIGestureRecognizerStateBegan;
+        return;
+    }
+}
+
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    
-
-    CGPoint nowPoint = [touches.anyObject locationInView:self.view];
-    CGPoint prevPoint = [touches.anyObject previousLocationInView:self.view];
-
-    if (self.state == UIGestureRecognizerStatePossible) {
+    [super touchesMoved:touches withEvent:event];
+    if (self.state == UIGestureRecognizerStateFailed) return;
+    if (self.state == UIGestureRecognizerStateBegan) {
         
+        CGPoint nowPoint = [touches.anyObject locationInView:self.view];
+        CGPoint prevPoint = [touches.anyObject previousLocationInView:self.view];
         
         CGFloat x = fabs(nowPoint.x - prevPoint.x);
         CGFloat y = fabs(nowPoint.y - prevPoint.y);
@@ -40,8 +48,7 @@
         BOOL comp = NO;
         
         switch (self.scrollDirection) {
-                
-            
+        
             case STPScrollViewPanGestureRecognizerDirectionVertical:
                 // 横のスクロールと判断するとFailedにする
                 comp = y < x;
@@ -55,16 +62,29 @@
                 // 全方向でFaildにしない
                 break;
         }
-        
+    
         if (comp) {
             self.state = UIGestureRecognizerStateFailed;
             return;
         }
-        
+        self.state = UIGestureRecognizerStateChanged;
     }
-    [super touchesMoved:touches withEvent:event];
-    
-    if (self.state == UIGestureRecognizerStateFailed) return;
+}
+
+- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    [super touchesEnded:touches withEvent:event];
+}
+
+- (void)reset
+{
+    [super reset];
+    self.state = UIGestureRecognizerStatePossible;
+}
+
+- (void)toFail
+{
+    self.state = UIGestureRecognizerStateFailed;
 }
 
 

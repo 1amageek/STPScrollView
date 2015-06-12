@@ -25,4 +25,10 @@
     [super touchesEnded:touches withEvent:event];
 }
 
+- (void)reset
+{
+    [super reset];
+    self.state = UIGestureRecognizerStatePossible;
+}
+
 @end

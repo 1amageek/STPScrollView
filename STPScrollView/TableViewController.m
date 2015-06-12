@@ -8,6 +8,7 @@
 
 #import "TableViewController.h"
 #import "ViewController.h"
+#import "NestViewController.h"
 
 @interface TableViewController ()
 @property (nonatomic) NSArray *testItems;
@@ -54,6 +55,9 @@
                            @"animation conntentSizeがview.bounddsより大きい",
                            @"animation 逆方向　contentSizeがview.boundsより小さい",
                            @"animation 逆方向　conntentSizeがview.bounddsより大きい"
+                           ],
+                       @[
+                           @"Nest"
                            ]
                        
                        ];
@@ -87,6 +91,13 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
+    if (indexPath.section == 4) {
+        
+        NestViewController *nestViewController = [NestViewController new];
+        [self presentViewController:nestViewController animated:YES completion:nil];
+        return;
+    }
+    
     ViewController *viewController = [ViewController new];
     //[self.navigationController pushViewController:viewController animated:YES];
     
@@ -325,7 +336,7 @@
                 
             }
             if (indexPath.row == 3) {
-                contentRect = CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width * 2, [UIScreen mainScreen].bounds.size.height / 2);
+                contentRect = CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width * 2, [UIScreen mainScreen].bounds.size.height);
                 [self setRect:contentRect viewController:viewController];
                 
                 [viewController.uiScrollView setContentOffset:CGPointMake(-100, 0) animated:YES];

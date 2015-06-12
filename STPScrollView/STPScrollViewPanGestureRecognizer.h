@@ -16,15 +16,20 @@ typedef NS_ENUM(NSInteger, STPScrollViewPanGestureRecognizerDirection)
     STPScrollViewPanGestureRecognizerDirectionHorizontal
 };
 
+@protocol STPScrollViewPanGestureRecognizerDelegate;
 @interface STPScrollViewPanGestureRecognizer : UIPanGestureRecognizer
 
 @property (nonatomic) STPScrollViewPanGestureRecognizerDirection scrollDirection; //default STPScrollViewScrollDirectionEvery
+@property (nonatomic, weak) id <STPScrollViewPanGestureRecognizerDelegate> scrollViewPanGestureRecognizerDelegate;
+
+- (void)toFail;
 
 @end
 
 
 @protocol STPScrollViewPanGestureRecognizerDelegate <NSObject>
 
+- (BOOL)scrollViewPanGestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer;
 - (STPScrollViewPanGestureRecognizerDirection)gestureRecognizerScrollDirection;
 
 @end

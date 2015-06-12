@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8C16CFEF1B25DA19005E4AC1 /* NestViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 8C16CFEE1B25DA19005E4AC1 /* NestViewController.m */; };
 		8C6240C91AB90355004C51BB /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 8C6240C81AB90355004C51BB /* main.m */; };
 		8C6240CC1AB90355004C51BB /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 8C6240CB1AB90355004C51BB /* AppDelegate.m */; };
 		8C6240D21AB90355004C51BB /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 8C6240D01AB90355004C51BB /* Main.storyboard */; };
@@ -34,6 +35,8 @@
 /* Begin PBXFileReference section */
 		36FA70DA0FA700AD14B82B98 /* Pods.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.release.xcconfig; path = "Pods/Target Support Files/Pods/Pods.release.xcconfig"; sourceTree = "<group>"; };
 		7FEBA2F47B91FC54DD8BDA15 /* Pods.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.debug.xcconfig; path = "Pods/Target Support Files/Pods/Pods.debug.xcconfig"; sourceTree = "<group>"; };
+		8C16CFED1B25DA19005E4AC1 /* NestViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NestViewController.h; sourceTree = "<group>"; };
+		8C16CFEE1B25DA19005E4AC1 /* NestViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NestViewController.m; sourceTree = "<group>"; };
 		8C6240C31AB90355004C51BB /* STPScrollView.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = STPScrollView.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8C6240C71AB90355004C51BB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8C6240C81AB90355004C51BB /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -123,6 +126,8 @@
 				8CFB7D581B073D5900BB0089 /* TableViewController.m */,
 				8CFB7D5A1B073EA300BB0089 /* ViewController.h */,
 				8CFB7D5B1B073EA300BB0089 /* ViewController.m */,
+				8C16CFED1B25DA19005E4AC1 /* NestViewController.h */,
+				8C16CFEE1B25DA19005E4AC1 /* NestViewController.m */,
 				8C9618A91AEC9FA900BD425F /* STPScrollView.h */,
 				8C9618AA1AEC9FA900BD425F /* STPScrollView.m */,
 				8C9618AC1AECA01200BD425F /* STPScrollViewPanGestureRecognizer.h */,
@@ -298,6 +303,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8C16CFEF1B25DA19005E4AC1 /* NestViewController.m in Sources */,
 				8CFB7D5C1B073EA300BB0089 /* ViewController.m in Sources */,
 				8CFB7D941B08B60300BB0089 /* STPScrollViewPinchGestureRecognizer.m in Sources */,
 				8C9618AE1AECA01200BD425F /* STPScrollViewPanGestureRecognizer.m in Sources */,
